@@ -5,6 +5,10 @@ includes:
     taskfile: github.Taskfile.yml
     dir: .
 
+  bootstrap-gcp:
+    taskfile: infra/bootstrap-gcp/Taskfile.yml
+    dir: infra/bootstrap-gcp
+
 tasks:
   fixAll:
     desc: Apply all automatic fixes
