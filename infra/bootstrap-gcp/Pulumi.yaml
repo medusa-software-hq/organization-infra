@@ -6,3 +6,6 @@ runtime:
 main: src/index.ts
 description: >-
   Bootstraps the GCP organization.
+backend:
+  # Temporary local state, until the GCS state bucket exists
+  url: file://~/.pulumi-state/organization-infra

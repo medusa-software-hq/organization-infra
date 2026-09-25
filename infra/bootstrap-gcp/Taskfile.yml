@@ -1,5 +1,9 @@
 version: '3'
 
+env:
+  # No secrets yet; replaced by a KMS key together with the GCS backend
+  PULUMI_CONFIG_PASSPHRASE: ""
+
 tasks:
   install:
     desc: Install dependencies
@@ -36,16 +40,22 @@ tasks:
     cmds:
       - corepack yarn oxlint --type-aware --fix
 
+  selectStack:
+    internal: true
+    run: once
+    cmds:
+      - mkdir -p ~/.pulumi-state/organization-infra
+      - pulumi stack select --create --non-interactive main
+
   infraApply:
-    desc: Apply changes to the current stack
-    deps: [install]
+    desc: Apply changes to the stack
+    deps: [install, selectStack]
     interactive: true
     cmds:
       - pulumi up
 
   infraPreview:
-    desc: Preview changes against the current stack
-    deps: [install]
-    interactive: true
+    desc: Preview changes to the stack
+    deps: [install, selectStack]
     cmds:
-      - pulumi preview
+      - pulumi preview --non-interactive
