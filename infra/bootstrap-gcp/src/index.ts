@@ -82,7 +82,7 @@ const stateBucket = new gcp.storage.Bucket(
     dependsOn: [storageApi],
     protect: true,
     retainOnDelete: true,
-    import: "ms-root-pulumi-state-6b6d7077", // TODO: Remove the import
+    import: "ms-root-f69f2a6d/ms-root-pulumi-state-6b6d7077", // TODO: Remove the import
   },
 );
 
