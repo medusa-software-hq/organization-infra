@@ -5,6 +5,9 @@ import * as pulumi from "@pulumi/pulumi";
 /** The organization's internet domain, which is also the name of its Cloud Identity account. */
 const organizationDomain = "medusa.software";
 
+/** The default location for regional resources. */
+const primaryLocation = "europe-central2";
+
 /** The GCP organization. */
 const organization = gcp.organizations.getOrganizationOutput({
   domain: organizationDomain,
@@ -33,3 +36,37 @@ export const rootProject = new gcp.organizations.Project(
   },
   { protect: true },
 );
+
+/** The Cloud Storage API in the root project. */
+const storageApi = new gcp.projects.Service("storage-api", {
+  project: rootProject.projectId,
+  service: "storage.googleapis.com",
+  disableOnDestroy: false,
+});
+
+/** The random suffix of the state bucket name. */
+const stateBucketSuffix = new random.RandomId("state-bucket-suffix", { byteLength: 4 });
+
+/** The bucket holding this stack's Pulumi state. */
+const stateBucket = new gcp.storage.Bucket(
+  "state",
+  {
+    project: rootProject.projectId,
+    name: pulumi.interpolate`ms-root-pulumi-state-${stateBucketSuffix.hex}`,
+    location: primaryLocation,
+    uniformBucketLevelAccess: true,
+    publicAccessPrevention: "enforced",
+    versioning: { enabled: true },
+    lifecycleRules: [
+      {
+        action: { type: "Delete" },
+        condition: { daysSinceNoncurrentTime: 90 },
+      },
+    ],
+    // Must never be zero; together with versioning, it allows recovering overwritten state
+    softDeletePolicy: { retentionDurationSeconds: 7 * 24 * 60 * 60 },
+  },
+  { dependsOn: [storageApi], protect: true, retainOnDelete: true },
+);
+
+export const stateBucketUrl = pulumi.interpolate`gs://${stateBucket.name}`;

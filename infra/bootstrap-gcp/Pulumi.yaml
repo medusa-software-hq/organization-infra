@@ -9,3 +9,7 @@ description: >-
 backend:
   # Temporary local state, until the GCS state bucket exists
   url: file://~/.pulumi-state/organization-infra
+config:
+  # Every resource names its project explicitly
+  gcp:disableGlobalProjectWarning:
+    value: true
