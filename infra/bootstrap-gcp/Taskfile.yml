@@ -1,7 +1,7 @@
 version: '3'
 
 env:
-  # No secrets yet; replaced by a KMS key together with the GCS backend
+  # No secrets yet; to be replaced by a KMS key
   PULUMI_CONFIG_PASSPHRASE: ""
 
 tasks:
@@ -44,8 +44,7 @@ tasks:
     internal: true
     run: once
     cmds:
-      - mkdir -p ~/.pulumi-state/organization-infra
-      - pulumi stack select --create --non-interactive main
+      - pulumi stack select --non-interactive main
 
   infraApply:
     desc: Apply changes to the stack

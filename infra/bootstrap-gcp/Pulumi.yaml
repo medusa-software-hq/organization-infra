@@ -7,8 +7,7 @@ main: src/index.ts
 description: >-
   Bootstraps the GCP organization.
 backend:
-  # Temporary local state, until the GCS state bucket exists
-  url: file://~/.pulumi-state/organization-infra
+  url: gs://ms-root-pulumi-state-6b6d7077
 config:
   # Every resource names its project explicitly
   gcp:disableGlobalProjectWarning:
