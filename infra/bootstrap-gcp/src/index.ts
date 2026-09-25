@@ -74,12 +74,21 @@ const stateBucket = new gcp.storage.Bucket(
 
 export const stateBucketUrl = pulumi.interpolate`gs://${stateBucket.name}`;
 
-/** The permission for Privileged Access Manager to create and revoke grants. */
-const pamServiceAgentRole = new gcp.organizations.IAMMember("pam-service-agent", {
-  orgId: organization.orgId,
-  role: "roles/privilegedaccessmanager.serviceAgent",
-  member: pulumi.interpolate`serviceAccount:service-org-${organization.orgId}@gcp-sa-pam.iam.gserviceaccount.com`,
+/** The service agent of Privileged Access Manager, shared by the whole organization. */
+const pamServiceAgent = new gcp.iam.WorkloadIdentityServiceAgent("pam", {
+  parent: pulumi.interpolate`organizations/${organization.orgId}/locations/global/serviceProducers/privilegedaccessmanager.googleapis.com`,
 });
+
+/** The permission for Privileged Access Manager to create and revoke grants. */
+const pamServiceAgentRole = new gcp.organizations.IAMMember(
+  "pam-service-agent",
+  {
+    orgId: organization.orgId,
+    role: "roles/privilegedaccessmanager.serviceAgent",
+    member: pulumi.interpolate`serviceAccount:service-org-${organization.orgId}@gcp-sa-pam.iam.gserviceaccount.com`,
+  },
+  { dependsOn: [pamServiceAgent] },
+);
 
 /** The condition limiting a role to the state bucket and its objects. */
 const stateBucketCondition = pulumi.interpolate`resource.name == "projects/_/buckets/${stateBucket.name}" || resource.name.startsWith("projects/_/buckets/${stateBucket.name}/")`;
