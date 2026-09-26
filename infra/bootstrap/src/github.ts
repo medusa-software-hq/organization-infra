@@ -16,7 +16,7 @@ const githubRepository = {
 };
 
 /** GitHub's OIDC subject prefix for this repository, whose IDs a re-registered name can't match. */
-export const githubRepositorySubject = `repo:${githubOrganization.name}@${githubOrganization.id}/${githubRepository.name}@${githubRepository.id}`;
+const githubRepositorySubject = `repo:${githubOrganization.name}@${githubOrganization.id}/${githubRepository.name}@${githubRepository.id}`;
 
 /** The trust domain for tokens issued by GitHub. */
 const githubPool = new gcp.iam.WorkloadIdentityPool(
