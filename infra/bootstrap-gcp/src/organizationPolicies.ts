@@ -6,58 +6,30 @@ import { organization, organizationDomain } from "./organization.ts";
 function organizationPolicy(
   constraint: string,
   rule: gcp.types.input.orgpolicy.PolicySpecRule,
-  opts?: pulumi.CustomResourceOptions,
 ): gcp.orgpolicy.Policy {
-  return new gcp.orgpolicy.Policy(
-    constraint,
-    {
-      parent: pulumi.interpolate`organizations/${organization.orgId}`,
-      name: pulumi.interpolate`organizations/${organization.orgId}/policies/${constraint}`,
-      spec: { rules: [rule] },
-    },
-    opts,
-  );
-}
-
-/** Temporarily adopts a policy that already exists in the organization. */
-function adopted(constraint: string): pulumi.CustomResourceOptions {
-  return { import: `organizations/773468735623/policies/${constraint}` }; // TODO: Remove the import
+  return new gcp.orgpolicy.Policy(constraint, {
+    parent: pulumi.interpolate`organizations/${organization.orgId}`,
+    name: pulumi.interpolate`organizations/${organization.orgId}/policies/${constraint}`,
+    spec: { rules: [rule] },
+  });
 }
 
 // No downloadable service account keys can be created
-organizationPolicy(
-  "iam.disableServiceAccountKeyCreation",
-  { enforce: "TRUE" },
-  adopted("iam.disableServiceAccountKeyCreation"),
-);
+organizationPolicy("iam.disableServiceAccountKeyCreation", { enforce: "TRUE" });
 
 // No externally generated keys can be uploaded to service accounts
-organizationPolicy(
-  "iam.disableServiceAccountKeyUpload",
-  { enforce: "TRUE" },
-  adopted("iam.disableServiceAccountKeyUpload"),
-);
+organizationPolicy("iam.disableServiceAccountKeyUpload", { enforce: "TRUE" });
 
 // Default service accounts don't get the Editor role automatically
-organizationPolicy(
-  "iam.automaticIamGrantsForDefaultServiceAccounts",
-  { enforce: "TRUE" },
-  adopted("iam.automaticIamGrantsForDefaultServiceAccounts"),
-);
+organizationPolicy("iam.automaticIamGrantsForDefaultServiceAccounts", { enforce: "TRUE" });
 
 // Only principals from the organization's own directory can be granted roles
-organizationPolicy(
-  "iam.allowedPolicyMemberDomains",
-  { values: { allowedValues: [organization.directoryCustomerId] } },
-  adopted("iam.allowedPolicyMemberDomains"),
-);
+organizationPolicy("iam.allowedPolicyMemberDomains", {
+  values: { allowedValues: [organization.directoryCustomerId] },
+});
 
 // Buckets can't use per-object ACLs, only IAM
-organizationPolicy(
-  "storage.uniformBucketLevelAccess",
-  { enforce: "TRUE" },
-  adopted("storage.uniformBucketLevelAccess"),
-);
+organizationPolicy("storage.uniformBucketLevelAccess", { enforce: "TRUE" });
 
 // Buckets and objects can't be made public
 organizationPolicy("storage.publicAccessPrevention", { enforce: "TRUE" });
@@ -66,22 +38,14 @@ organizationPolicy("storage.publicAccessPrevention", { enforce: "TRUE" });
 organizationPolicy("compute.skipDefaultNetworkCreation", { enforce: "TRUE" });
 
 // New projects use zonal internal DNS names, which are more resilient than global ones
-organizationPolicy(
-  "compute.setNewProjectDefaultToZonalDNSOnly",
-  { enforce: "TRUE" },
-  adopted("compute.setNewProjectDefaultToZonalDNSOnly"),
-);
+organizationPolicy("compute.setNewProjectDefaultToZonalDNSOnly", { enforce: "TRUE" });
 
 // Protocol forwarding can only be used for internal traffic
-organizationPolicy(
-  "compute.restrictProtocolForwardingCreationForTypes",
-  { values: { allowedValues: ["INTERNAL"] } },
-  adopted("compute.restrictProtocolForwardingCreationForTypes"),
-);
+organizationPolicy("compute.restrictProtocolForwardingCreationForTypes", {
+  values: { allowedValues: ["INTERNAL"] },
+});
 
 // Essential contacts (security, billing notices) must be the organization's own addresses
-organizationPolicy(
-  "essentialcontacts.allowedContactDomains",
-  { values: { allowedValues: [`@${organizationDomain}`] } },
-  adopted("essentialcontacts.allowedContactDomains"),
-);
+organizationPolicy("essentialcontacts.allowedContactDomains", {
+  values: { allowedValues: [`@${organizationDomain}`] },
+});

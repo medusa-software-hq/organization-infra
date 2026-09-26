@@ -22,47 +22,35 @@ const pamServiceAgentRole = new gcp.organizations.IAMMember(
 /** The condition limiting a role to the state bucket and its objects. */
 const stateBucketCondition = pulumi.interpolate`resource.name == "projects/_/buckets/${stateBucket.name}" || resource.name.startsWith("projects/_/buckets/${stateBucket.name}/")`;
 
-/** The access granted by the manual administration entitlement. */
-const manualAdministrationAccess = {
-  parent: pulumi.interpolate`organizations/${organization.orgId}`,
-  location: "global",
-  eligibleUsers: [{ principals: [organizationAdminsGroup] }],
-  privilegedAccess: {
-    gcpIamAccess: {
-      resourceType: "cloudresourcemanager.googleapis.com/Organization",
-      resource: pulumi.interpolate`//cloudresourcemanager.googleapis.com/organizations/${organization.orgId}`,
-      roleBindings: [
-        { role: "roles/privilegedaccessmanager.admin" },
-        { role: "roles/iam.securityAdmin" },
-        { role: "roles/resourcemanager.projectMover" },
-        { role: "roles/billing.viewer" },
-        { role: "roles/serviceusage.serviceUsageAdmin" },
-        { role: "roles/orgpolicy.policyAdmin" },
-        { role: "roles/storage.admin", conditionExpression: stateBucketCondition },
-      ],
-    },
-  },
-  maxRequestDuration: `${60 * 60}s`,
-  requesterJustificationConfig: { unstructured: {} },
-};
-
 /** Temporary elevation for administering the organization by hand, including applying this stack. */
 new gcp.privilegedaccessmanager.Entitlement(
   "manual-administration",
   {
-    ...manualAdministrationAccess,
+    parent: pulumi.interpolate`organizations/${organization.orgId}`,
+    location: "global",
     entitlementId: "manual-administration",
+    eligibleUsers: [{ principals: [organizationAdminsGroup] }],
+    privilegedAccess: {
+      gcpIamAccess: {
+        resourceType: "cloudresourcemanager.googleapis.com/Organization",
+        resource: pulumi.interpolate`//cloudresourcemanager.googleapis.com/organizations/${organization.orgId}`,
+        roleBindings: [
+          { role: "roles/privilegedaccessmanager.admin" },
+          { role: "roles/iam.securityAdmin" },
+          { role: "roles/resourcemanager.projectMover" },
+          { role: "roles/billing.viewer" },
+          { role: "roles/serviceusage.serviceUsageAdmin" },
+          { role: "roles/orgpolicy.policyAdmin" },
+          { role: "roles/storage.admin", conditionExpression: stateBucketCondition },
+        ],
+      },
+    },
+    maxRequestDuration: `${60 * 60}s`,
+    requesterJustificationConfig: { unstructured: {} },
     // Losing it locks out everyone but admin@
     deletionPolicy: "PREVENT",
   },
   { dependsOn: [pamServiceAgentRole], protect: true },
-);
-
-// TODO: Remove, once replaced by the manual administration entitlement
-new gcp.privilegedaccessmanager.Entitlement(
-  "bootstrap-operator",
-  { ...manualAdministrationAccess, entitlementId: "bootstrap-operator", deletionPolicy: "DELETE" },
-  { dependsOn: [pamServiceAgentRole] },
 );
 
 /** The sole holder of the organization admin role; other holders are removed. */

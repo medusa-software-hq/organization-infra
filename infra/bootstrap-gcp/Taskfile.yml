@@ -51,10 +51,10 @@ tasks:
     deps: [install, selectStack]
     interactive: true
     cmds:
-      - pulumi up
+      - pulumi up {{.CLI_ARGS}}
 
   infraPreview:
     desc: Preview changes to the stack
     deps: [install, selectStack]
     cmds:
-      - pulumi preview --non-interactive
+      - pulumi preview --non-interactive {{.CLI_ARGS}}
