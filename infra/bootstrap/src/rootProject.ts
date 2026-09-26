@@ -64,3 +64,10 @@ export const privilegedAccessManagerApi = new gcp.projects.Service(
     disableOnDestroy: false,
   },
 );
+
+/** The Cloud Billing API in the root project, for automation linking projects to billing. */
+export const cloudBillingApi = new gcp.projects.Service("cloud-billing-api", {
+  project: rootProject.projectId,
+  service: "cloudbilling.googleapis.com",
+  disableOnDestroy: false,
+});
