@@ -8,3 +8,7 @@ description: >-
   The organization's everyday configuration.
 backend:
   url: https://api.pulumi.com
+config:
+  # Every resource names its project explicitly
+  gcp:disableGlobalProjectWarning:
+    value: true

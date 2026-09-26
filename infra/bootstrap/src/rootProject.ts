@@ -47,3 +47,10 @@ export const stsApi = new gcp.projects.Service("sts-api", {
   service: "sts.googleapis.com",
   disableOnDestroy: false,
 });
+
+/** The Resource Manager API in the root project, which automation's API calls are billed to. */
+export const resourceManagerApi = new gcp.projects.Service("resource-manager-api", {
+  project: rootProject.projectId,
+  service: "cloudresourcemanager.googleapis.com",
+  disableOnDestroy: false,
+});
