@@ -54,3 +54,13 @@ export const resourceManagerApi = new gcp.projects.Service("resource-manager-api
   service: "cloudresourcemanager.googleapis.com",
   disableOnDestroy: false,
 });
+
+/** The Privileged Access Manager API in the root project, for automation requesting grants. */
+export const privilegedAccessManagerApi = new gcp.projects.Service(
+  "privileged-access-manager-api",
+  {
+    project: rootProject.projectId,
+    service: "privilegedaccessmanager.googleapis.com",
+    disableOnDestroy: false,
+  },
+);
