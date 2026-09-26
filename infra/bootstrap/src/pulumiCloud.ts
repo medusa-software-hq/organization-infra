@@ -111,30 +111,35 @@ new pulumiservice.Environment("foundation-apply", {
 });
 
 /** Lets this repository's workflows log in to Pulumi Cloud without a stored token. */
-new pulumiservice.OidcIssuer("github-actions", {
-  organization: pulumiOrganization,
-  name: "github-actions",
-  url: "https://token.actions.githubusercontent.com",
-  maxExpirationSeconds: 60 * 60,
-  // The Free edition only issues personal tokens
-  policies: [
-    {
-      decision: "allow",
-      tokenType: "personal",
-      userLogin: pulumiUser,
-      rules: {
-        aud: `urn:pulumi:org:${pulumiOrganization}`,
-        sub: `${githubRepositorySubject}:ref:refs/heads/main`,
+new pulumiservice.OidcIssuer(
+  "github-actions",
+  {
+    organization: pulumiOrganization,
+    name: "github-actions",
+    url: "https://token.actions.githubusercontent.com",
+    maxExpirationSeconds: 60 * 60,
+    // The Free edition only issues personal tokens
+    policies: [
+      {
+        decision: "allow",
+        tokenType: "personal",
+        userLogin: pulumiUser,
+        rules: {
+          aud: `urn:pulumi:org:${pulumiOrganization}`,
+          sub: `${githubRepositorySubject}:ref:refs/heads/main`,
+        },
       },
-    },
-    {
-      decision: "allow",
-      tokenType: "personal",
-      userLogin: pulumiUser,
-      rules: {
-        aud: `urn:pulumi:org:${pulumiOrganization}`,
-        sub: `${githubRepositorySubject}:pull_request`,
+      {
+        decision: "allow",
+        tokenType: "personal",
+        userLogin: pulumiUser,
+        rules: {
+          aud: `urn:pulumi:org:${pulumiOrganization}`,
+          sub: `${githubRepositorySubject}:pull_request`,
+        },
       },
-    },
-  ],
-});
+    ],
+  },
+  // Pulumi Cloud records them from the certificate GitHub serves
+  { ignoreChanges: ["thumbprints"] },
+);
