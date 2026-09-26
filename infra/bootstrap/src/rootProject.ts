@@ -10,7 +10,7 @@ const rootProjectSuffix = new random.RandomId("root-project-suffix", { byteLengt
 export const rootProject = new gcp.organizations.Project(
   "root",
   {
-    name: "bootstrap",
+    name: "Root",
     projectId: pulumi.interpolate`ms-root-${rootProjectSuffix.hex}`,
     orgId: organization.orgId,
     billingAccount: billingAccount.id,
