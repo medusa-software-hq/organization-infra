@@ -1,0 +1,81 @@
+name: Apply foundation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - infra/foundation/**
+      - .github/workflows/apply-foundation.yml
+  workflow_dispatch:
+
+concurrency:
+  group: apply-foundation
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  NO_COLOR: 1
+  PULUMI_CONFIG_PASSPHRASE: ""
+  GCP_IDENTITY_PROVIDER: projects/626887270411/locations/global/workloadIdentityPools/github/providers/github-actions
+  ENTITLEMENT: organizations/773468735623/locations/global/entitlements/automated-administration
+
+jobs:
+  apply-foundation:
+    name: Apply foundation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: infra/foundation/.nvmrc
+
+      - name: Install dependencies
+        working-directory: infra/foundation
+        run: corepack yarn install --immutable
+
+      - name: Log in to GCP as the organization provisioner
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_IDENTITY_PROVIDER }}
+          service_account: organization-provisioner@ms-root-f69f2a6d.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v3.0.1
+
+      # A grant from an earlier run may still be open; PAM allows only one at a time
+      - name: Request elevated access
+        run: |
+          grant=$(gcloud pam grants create --entitlement="$ENTITLEMENT" --requested-duration=1800s \
+            --justification="Apply $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
+            --format="value(name)") ||
+          grant=$(gcloud pam grants search --entitlement="$ENTITLEMENT" --caller-relationship=had-created \
+            --filter="state=ACTIVE" --limit=1 --format="value(name)")
+          echo "GRANT=$grant" >> "$GITHUB_ENV"
+
+      - name: Wait for the grant to take effect
+        run: |
+          for _ in $(seq 60); do
+            [ "$(gcloud pam grants describe "$GRANT" --format="value(state)")" = ACTIVE ] && break
+            sleep 10
+          done
+          # IAM changes propagate for a while after activation
+          for _ in $(seq 60); do
+            curl -sf -X POST -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+              -H "Content-Type: application/json" -d '{"permissions":["resourcemanager.projects.create"]}' \
+              https://cloudresourcemanager.googleapis.com/v3/organizations/773468735623:testIamPermissions |
+              grep -q resourcemanager.projects.create && exit 0
+            sleep 10
+          done
+          echo "The grant didn't take effect in time" >&2
+          exit 1
+
+      - name: Apply
+        uses: pulumi/actions@v7.0.0
+        with:
+          command: up
+          stack-name: main
+          work-dir: infra/foundation
+          cloud-url: gs://ms-root-foundation-state-b2099013

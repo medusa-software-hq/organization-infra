@@ -65,6 +65,34 @@ new gcp.privilegedaccessmanager.Entitlement(
   { dependsOn: [pamServiceAgentRole], protect: true },
 );
 
+/** Temporary elevation for applying the foundation from its main branch. */
+new gcp.privilegedaccessmanager.Entitlement(
+  "automated-administration",
+  {
+    parent: pulumi.interpolate`organizations/${organization.orgId}`,
+    location: "global",
+    entitlementId: "automated-administration",
+    eligibleUsers: [
+      { principals: [pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`] },
+    ],
+    privilegedAccess: {
+      gcpIamAccess: {
+        resourceType: "cloudresourcemanager.googleapis.com/Organization",
+        resource: pulumi.interpolate`//cloudresourcemanager.googleapis.com/organizations/${organization.orgId}`,
+        roleBindings: [
+          { role: "roles/resourcemanager.folderAdmin" },
+          { role: "roles/resourcemanager.projectCreator" },
+          { role: "roles/billing.user" },
+          { role: "roles/serviceusage.serviceUsageAdmin" },
+        ],
+      },
+    },
+    maxRequestDuration: `${30 * 60}s`,
+    requesterJustificationConfig: { unstructured: {} },
+  },
+  { dependsOn: [pamServiceAgentRole] },
+);
+
 /** The sole holder of the organization admin role; other holders are removed. */
 new gcp.organizations.IAMBinding("organization-admin", {
   orgId: organization.orgId,
