@@ -5,7 +5,6 @@ import { githubActionsProvider } from "./github.ts";
 import { bootstrapStateBucket, foundationStateBucket } from "./stateBuckets.ts";
 import "./access.ts";
 import "./organizationPolicies.ts";
-import "./pulumiCloud.ts";
 
 export const rootProjectId = rootProject.projectId;
 
