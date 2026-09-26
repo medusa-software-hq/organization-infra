@@ -9,7 +9,7 @@ import "./pulumiCloud.ts";
 
 export const rootProjectId = rootProject.projectId;
 
-export const stateBucketUrl = pulumi.interpolate`gs://${bootstrapStateBucket.name}`;
+export const bootstrapStateBucketUrl = pulumi.interpolate`gs://${bootstrapStateBucket.name}`;
 
 export const foundationStateBucketUrl = pulumi.interpolate`gs://${foundationStateBucket.name}`;
 
