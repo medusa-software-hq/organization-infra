@@ -6,7 +6,6 @@ import {
   bootstrapStateBucketName,
   foundationStateBucket,
   foundationStateBucketName,
-  legacyStateBucketName,
 } from "./stateBuckets.ts";
 
 /** The service agent of Privileged Access Manager, shared by the whole organization. */
@@ -53,7 +52,7 @@ new gcp.privilegedaccessmanager.Entitlement(
           { role: "roles/iam.workloadIdentityPoolAdmin" },
           {
             role: "roles/storage.admin",
-            conditionExpression: pulumi.interpolate`${bucketCondition(legacyStateBucketName)} || ${bucketCondition(bootstrapStateBucketName)} || ${bucketCondition(foundationStateBucketName)}`,
+            conditionExpression: pulumi.interpolate`${bucketCondition(bootstrapStateBucketName)} || ${bucketCondition(foundationStateBucketName)}`,
           },
         ],
       },
