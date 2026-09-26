@@ -1,6 +1,7 @@
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
 import { organization, organizationAdminsGroup, superAdmin } from "./organization.ts";
+import { organizationProvisioner, organizationReader } from "./automation.ts";
 import { stateBucket } from "./stateBucket.ts";
 
 /** The service agent of Privileged Access Manager, shared by the whole organization. */
@@ -72,4 +73,30 @@ new gcp.organizations.IAMMember("organization-admins-browser", {
   orgId: organization.orgId,
   role: "roles/browser",
   member: organizationAdminsGroup,
+});
+
+new gcp.organizations.IAMMember("organization-reader-viewer", {
+  orgId: organization.orgId,
+  role: "roles/viewer",
+  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+});
+
+/** Lets the organization reader see organization and folder IAM policies, which viewers can't. */
+new gcp.organizations.IAMMember("organization-reader-security-reviewer", {
+  orgId: organization.orgId,
+  role: "roles/iam.securityReviewer",
+  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+});
+
+new gcp.organizations.IAMMember("organization-provisioner-viewer", {
+  orgId: organization.orgId,
+  role: "roles/viewer",
+  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+});
+
+/** Lets the organization provisioner see organization and folder IAM policies, which viewers can't. */
+new gcp.organizations.IAMMember("organization-provisioner-security-reviewer", {
+  orgId: organization.orgId,
+  role: "roles/iam.securityReviewer",
+  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
 });
