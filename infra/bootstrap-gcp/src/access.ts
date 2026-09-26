@@ -41,6 +41,8 @@ new gcp.privilegedaccessmanager.Entitlement(
           { role: "roles/billing.viewer" },
           { role: "roles/serviceusage.serviceUsageAdmin" },
           { role: "roles/orgpolicy.policyAdmin" },
+          { role: "roles/iam.serviceAccountAdmin" },
+          { role: "roles/iam.workloadIdentityPoolAdmin" },
           { role: "roles/storage.admin", conditionExpression: stateBucketCondition },
         ],
       },

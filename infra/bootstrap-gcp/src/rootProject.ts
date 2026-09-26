@@ -26,3 +26,24 @@ export const storageApi = new gcp.projects.Service("storage-api", {
   service: "storage.googleapis.com",
   disableOnDestroy: false,
 });
+
+/** The IAM API in the root project, for managing service accounts and workload identity. */
+export const iamApi = new gcp.projects.Service("iam-api", {
+  project: rootProject.projectId,
+  service: "iam.googleapis.com",
+  disableOnDestroy: false,
+});
+
+/** The IAM Service Account Credentials API in the root project, for impersonating service accounts. */
+export const iamCredentialsApi = new gcp.projects.Service("iam-credentials-api", {
+  project: rootProject.projectId,
+  service: "iamcredentials.googleapis.com",
+  disableOnDestroy: false,
+});
+
+/** The Security Token Service API in the root project, for exchanging external tokens. */
+export const stsApi = new gcp.projects.Service("sts-api", {
+  project: rootProject.projectId,
+  service: "sts.googleapis.com",
+  disableOnDestroy: false,
+});
