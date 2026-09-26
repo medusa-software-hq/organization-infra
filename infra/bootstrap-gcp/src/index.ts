@@ -4,6 +4,7 @@ import { stateBucket } from "./stateBucket.ts";
 import "./access.ts";
 import "./organizationPolicies.ts";
 import "./organizationProvisioner.ts";
+import "./pulumiCloud.ts";
 
 export const rootProjectId = rootProject.projectId;
 
