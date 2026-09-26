@@ -1210,9 +1210,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap-gcp@workspace:.":
+"bootstrap@workspace:.":
   version: 0.0.0-use.local
-  resolution: "bootstrap-gcp@workspace:."
+  resolution: "bootstrap@workspace:."
   dependencies:
     "@pulumi/gcp": "npm:^9.0.0"
     "@pulumi/pulumi": "npm:^3.150.0"
