@@ -5,7 +5,11 @@ import { primaryLocation } from "./organization.ts";
 import { rootProject, storageApi } from "./rootProject.ts";
 
 /** Declares a bucket for Pulumi state. */
-function pulumiStateBucket(name: string, bucketName: pulumi.Output<string>): gcp.storage.Bucket {
+function pulumiStateBucket(
+  name: string,
+  bucketName: pulumi.Output<string>,
+  opts?: pulumi.CustomResourceOptions,
+): gcp.storage.Bucket {
   return new gcp.storage.Bucket(
     name,
     {
@@ -24,14 +28,14 @@ function pulumiStateBucket(name: string, bucketName: pulumi.Output<string>): gcp
       // Must never be zero; together with versioning, it allows recovering overwritten state
       softDeletePolicy: { retentionDurationSeconds: 7 * 24 * 60 * 60 },
     },
-    { dependsOn: [storageApi], protect: true, retainOnDelete: true },
+    { dependsOn: [storageApi], protect: true, retainOnDelete: true, ...opts },
   );
 }
 
-// TODO: Remove, once the state has moved to the bootstrap state bucket
+// TODO: Remove, once the bucket is deleted; the state has moved to the bootstrap state bucket
 const legacyStateBucketSuffix = new random.RandomId("state-bucket-suffix", { byteLength: 4 });
 export const legacyStateBucketName = pulumi.interpolate`ms-root-pulumi-state-${legacyStateBucketSuffix.hex}`;
-pulumiStateBucket("state", legacyStateBucketName);
+pulumiStateBucket("state", legacyStateBucketName, { protect: false });
 
 /** The random suffix of the bootstrap state bucket name. */
 const bootstrapStateBucketSuffix = new random.RandomId("bootstrap-state-bucket-suffix", {
