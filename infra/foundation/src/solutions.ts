@@ -58,7 +58,7 @@ export function solutionProject(
     name,
     {
       projectId: pulumi.interpolate`${name}-${suffix.hex}`,
-      name: `${solution.name} ${environment.name}`,
+      name: `${solution.name} - ${environment.name}`,
       folderId: folder.folderId,
       billingAccount: billingAccountId,
       deletionPolicy: "PREVENT",
