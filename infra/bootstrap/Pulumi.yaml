@@ -7,7 +7,7 @@ main: src/index.ts
 description: >-
   Bootstraps the organization's infrastructure.
 backend:
-  url: gs://ms-root-pulumi-state-6b6d7077
+  url: gs://ms-root-bootstrap-state-5c74c062
 config:
   # Every resource names its project explicitly
   gcp:disableGlobalProjectWarning:
