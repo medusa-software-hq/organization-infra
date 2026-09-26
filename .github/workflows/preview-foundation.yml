@@ -1,0 +1,46 @@
+name: Preview foundation
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  NO_COLOR: 1
+
+jobs:
+  preview-foundation:
+    name: Preview foundation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: infra/foundation/.nvmrc
+
+      - name: Install dependencies
+        working-directory: infra/foundation
+        run: corepack yarn install --immutable
+
+      - name: Log in to Pulumi Cloud
+        uses: pulumi/auth-actions@v2.1.0
+        with:
+          organization: medusa-software
+          requested-token-type: urn:pulumi:token-type:access_token:personal
+          scope: user:medusa-software
+
+      - name: Open the preview environment
+        uses: pulumi/esc-action@v3.2.0
+        with:
+          environment: medusa-software/foundation/preview
+
+      - name: Preview
+        uses: pulumi/actions@v7.0.0
+        with:
+          command: preview
+          stack-name: medusa-software/foundation/main
+          work-dir: infra/foundation

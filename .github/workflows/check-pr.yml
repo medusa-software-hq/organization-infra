@@ -10,3 +10,10 @@ jobs:
   check-gh-workflows:
     name: GitHub workflows
     uses: ./.github/workflows/check-gh-workflows.yml
+
+  preview-foundation:
+    name: Foundation
+    uses: ./.github/workflows/preview-foundation.yml
+    permissions:
+      contents: read
+      id-token: write
