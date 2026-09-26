@@ -1,5 +1,9 @@
 version: '3'
 
+env:
+  # No secrets yet
+  PULUMI_CONFIG_PASSPHRASE: ""
+
 tasks:
   install:
     desc: Install dependencies
@@ -40,10 +44,10 @@ tasks:
     internal: true
     run: once
     cmds:
-      - pulumi stack select --non-interactive medusa-software/main
+      - pulumi stack select --non-interactive main
 
   infraPreview:
-    desc: Preview changes to the stack, as the organization reader
+    desc: Preview changes to the stack
     deps: [install, selectStack]
     cmds:
-      - pulumi env run medusa-software/foundation/preview -- pulumi preview --non-interactive {{.CLI_ARGS}}
+      - pulumi preview --non-interactive {{.CLI_ARGS}}
