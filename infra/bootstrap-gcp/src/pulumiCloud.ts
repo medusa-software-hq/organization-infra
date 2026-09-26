@@ -1,6 +1,6 @@
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
-import { organizationProvisioner } from "./organizationProvisioner.ts";
+import { organizationProvisioner, organizationReader } from "./automation.ts";
 import { iamApi, rootProject, stsApi } from "./rootProject.ts";
 
 /** The Pulumi Cloud organization. */
@@ -35,9 +35,9 @@ function environmentSubject(environment: string): string {
   return `pulumi:environments:org:${pulumiOrganization}:env:${environment}`;
 }
 
-/** Lets the foundation's preview environment act as the organization provisioner. */
-new gcp.serviceaccount.IAMMember("organization-provisioner-user-foundation-preview", {
-  serviceAccountId: organizationProvisioner.name,
+/** Lets the foundation's preview environment act as the organization reader. */
+new gcp.serviceaccount.IAMMember("organization-reader-user-foundation-preview", {
+  serviceAccountId: organizationReader.name,
   role: "roles/iam.workloadIdentityUser",
   member: pulumi.interpolate`principal://iam.googleapis.com/${pulumiCloudPool.name}/subject/${environmentSubject("foundation/preview")}`,
 });

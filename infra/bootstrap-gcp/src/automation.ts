@@ -11,3 +11,14 @@ export const organizationProvisioner = new gcp.serviceaccount.Account(
   },
   { dependsOn: [iamApi] },
 );
+
+/** The identity through which automation inspects the organization; never elevated. */
+export const organizationReader = new gcp.serviceaccount.Account(
+  "organization-reader",
+  {
+    project: rootProject.projectId,
+    accountId: "organization-reader",
+    displayName: "Organization reader",
+  },
+  { dependsOn: [iamApi] },
+);
