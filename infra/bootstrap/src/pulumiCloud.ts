@@ -83,6 +83,17 @@ function gcpLoginEnvironment(
   });
 }
 
+/** The foundation's stack, whose deletion would lose its state and history. */
+new pulumiservice.Stack(
+  "foundation",
+  {
+    organizationName: pulumiOrganization,
+    projectName: "foundation",
+    stackName: "main",
+  },
+  { protect: true },
+);
+
 /** GCP credentials for previewing the foundation. */
 new pulumiservice.Environment("foundation-preview", {
   organization: pulumiOrganization,

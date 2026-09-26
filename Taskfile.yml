@@ -9,6 +9,10 @@ includes:
     taskfile: infra/bootstrap/Taskfile.yml
     dir: infra/bootstrap
 
+  foundation:
+    taskfile: infra/foundation/Taskfile.yml
+    dir: infra/foundation
+
 tasks:
   fixAll:
     desc: Apply all automatic fixes

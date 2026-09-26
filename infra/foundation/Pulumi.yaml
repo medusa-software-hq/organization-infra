@@ -1,0 +1,10 @@
+name: foundation
+runtime:
+  name: nodejs
+  options:
+    packagemanager: yarn
+main: src/index.ts
+description: >-
+  The organization's everyday configuration.
+backend:
+  url: https://api.pulumi.com
