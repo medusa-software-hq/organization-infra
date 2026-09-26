@@ -888,7 +888,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pulumi/pulumi@npm:^3.142.0, @pulumi/pulumi@npm:^3.150.0":
+"@pulumi/pulumi@npm:^3.0.0, @pulumi/pulumi@npm:^3.142.0, @pulumi/pulumi@npm:^3.150.0":
   version: 3.264.0
   resolution: "@pulumi/pulumi@npm:3.264.0"
   dependencies:
@@ -926,6 +926,15 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/0f4743816fe11d7f796aafe8f3bf9a9c86c2de8916b21dfc3006cab946f43b8ea7f55515316f56c27320eaaf5a6c6aa5533ef4e9a8627ca4bef73d3786390570
+  languageName: node
+  linkType: hard
+
+"@pulumi/pulumiservice@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@pulumi/pulumiservice@npm:1.4.0"
+  dependencies:
+    "@pulumi/pulumi": "npm:^3.0.0"
+  checksum: 10c0/81235f8c7600533d1e311b518779c5422474777df53e859a955adeac1dc2a15db01a0c682cc326e547d125e0d72d7ad722542a698a54d11be5aff95d4031d108
   languageName: node
   linkType: hard
 
@@ -1216,6 +1225,7 @@ __metadata:
   dependencies:
     "@pulumi/gcp": "npm:^9.0.0"
     "@pulumi/pulumi": "npm:^3.150.0"
+    "@pulumi/pulumiservice": "npm:^1.4.0"
     "@pulumi/random": "npm:^4.21.1"
     "@tsconfig/strictest": "npm:^2.0.8"
     "@types/node": "npm:^25.0.0"
@@ -1223,6 +1233,7 @@ __metadata:
     oxlint: "npm:^1.80.0"
     oxlint-tsgolint: "npm:^7.0.2003"
     typescript: "npm:^5.9.0"
+    yaml: "npm:^2.9.1"
   languageName: unknown
   linkType: soft
 
@@ -2665,6 +2676,15 @@ __metadata:
   version: 5.0.0
   resolution: "yallist@npm:5.0.0"
   checksum: 10c0/a499c81ce6d4a1d260d4ea0f6d49ab4da09681e32c3f0472dee16667ed69d01dae63a3b81745a24bd78476ec4fcf856114cb4896ace738e01da34b2c42235416
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "yaml@npm:2.9.1"
+  bin:
+    yaml: bin.mjs
+  checksum: 10c0/9d06676ef02b89559a8b10a71882bd2cdae81e8393dc8dbc871615c3259475d9609ad973d19cb3c9e71e72d6206e3d1e7aa241c7e55f3d16fd2e77db305827d6
   languageName: node
   linkType: hard
 
