@@ -81,6 +81,13 @@ new gcp.organizations.IAMMember("organization-reader-viewer", {
   member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
 });
 
+/** Lets the organization reader look up the organization itself, which viewers can't. */
+new gcp.organizations.IAMMember("organization-reader-browser", {
+  orgId: organization.orgId,
+  role: "roles/browser",
+  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+});
+
 /** Lets the organization reader see organization and folder IAM policies, which viewers can't. */
 new gcp.organizations.IAMMember("organization-reader-security-reviewer", {
   orgId: organization.orgId,
@@ -91,6 +98,13 @@ new gcp.organizations.IAMMember("organization-reader-security-reviewer", {
 new gcp.organizations.IAMMember("organization-provisioner-viewer", {
   orgId: organization.orgId,
   role: "roles/viewer",
+  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+});
+
+/** Lets the organization provisioner look up the organization itself, which viewers can't. */
+new gcp.organizations.IAMMember("organization-provisioner-browser", {
+  orgId: organization.orgId,
+  role: "roles/browser",
   member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
 });
 
