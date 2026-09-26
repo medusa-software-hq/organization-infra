@@ -6,9 +6,12 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
 
 env:
   NO_COLOR: 1
+  PULUMI_CONFIG_PASSPHRASE: ""
+  GCP_IDENTITY_PROVIDER: projects/626887270411/locations/global/workloadIdentityPools/github/providers/github-actions
 
 jobs:
   preview-foundation:
@@ -26,21 +29,18 @@ jobs:
         working-directory: infra/foundation
         run: corepack yarn install --immutable
 
-      - name: Log in to Pulumi Cloud
-        uses: pulumi/auth-actions@v2.1.0
+      - name: Log in to GCP as the organization reader
+        uses: google-github-actions/auth@v3
         with:
-          organization: medusa-software
-          requested-token-type: urn:pulumi:token-type:access_token:personal
-          scope: user:medusa-software
-
-      - name: Open the preview environment
-        uses: pulumi/esc-action@v3.2.0
-        with:
-          environment: medusa-software/foundation/preview
+          workload_identity_provider: ${{ env.GCP_IDENTITY_PROVIDER }}
+          service_account: organization-reader@ms-root-f69f2a6d.iam.gserviceaccount.com
 
       - name: Preview
         uses: pulumi/actions@v7.0.0
         with:
           command: preview
-          stack-name: medusa-software/foundation/main
+          stack-name: main
           work-dir: infra/foundation
+          cloud-url: gs://ms-root-foundation-state-b2099013
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}

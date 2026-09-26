@@ -7,7 +7,7 @@ main: src/index.ts
 description: >-
   The organization's everyday configuration.
 backend:
-  url: https://api.pulumi.com
+  url: gs://ms-root-foundation-state-b2099013
 config:
   # Every resource names its project explicitly
   gcp:disableGlobalProjectWarning:

@@ -2,7 +2,11 @@ import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
 import { organization, organizationAdminsGroup, superAdmin } from "./organization.ts";
 import { organizationProvisioner, organizationReader } from "./automation.ts";
-import { stateBucket } from "./stateBucket.ts";
+import {
+  bootstrapStateBucketName,
+  foundationStateBucket,
+  foundationStateBucketName,
+} from "./stateBuckets.ts";
 
 /** The service agent of Privileged Access Manager, shared by the whole organization. */
 const pamServiceAgent = new gcp.iam.WorkloadIdentityServiceAgent("pam", {
@@ -20,8 +24,10 @@ const pamServiceAgentRole = new gcp.organizations.IAMMember(
   { dependsOn: [pamServiceAgent] },
 );
 
-/** The condition limiting a role to the state bucket and its objects. */
-const stateBucketCondition = pulumi.interpolate`resource.name == "projects/_/buckets/${stateBucket.name}" || resource.name.startsWith("projects/_/buckets/${stateBucket.name}/")`;
+/** The condition limiting a role to a bucket and its objects. */
+function bucketCondition(bucketName: pulumi.Output<string>): pulumi.Output<string> {
+  return pulumi.interpolate`resource.name == "projects/_/buckets/${bucketName}" || resource.name.startsWith("projects/_/buckets/${bucketName}/")`;
+}
 
 /** Temporary elevation for administering the organization by hand, including applying this stack. */
 new gcp.privilegedaccessmanager.Entitlement(
@@ -44,7 +50,10 @@ new gcp.privilegedaccessmanager.Entitlement(
           { role: "roles/orgpolicy.policyAdmin" },
           { role: "roles/iam.serviceAccountAdmin" },
           { role: "roles/iam.workloadIdentityPoolAdmin" },
-          { role: "roles/storage.admin", conditionExpression: stateBucketCondition },
+          {
+            role: "roles/storage.admin",
+            conditionExpression: pulumi.interpolate`${bucketCondition(bootstrapStateBucketName)} || ${bucketCondition(foundationStateBucketName)}`,
+          },
         ],
       },
     },
@@ -112,5 +121,17 @@ new gcp.organizations.IAMMember("organization-provisioner-browser", {
 new gcp.organizations.IAMMember("organization-provisioner-security-reviewer", {
   orgId: organization.orgId,
   role: "roles/iam.securityReviewer",
+  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+});
+
+new gcp.storage.BucketIAMMember("organization-reader-foundation-state", {
+  bucket: foundationStateBucket.name,
+  role: "roles/storage.objectViewer",
+  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+});
+
+new gcp.storage.BucketIAMMember("organization-provisioner-foundation-state", {
+  bucket: foundationStateBucket.name,
+  role: "roles/storage.objectAdmin",
   member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
 });

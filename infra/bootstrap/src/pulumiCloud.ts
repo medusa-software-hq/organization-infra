@@ -2,6 +2,7 @@ import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
 import * as pulumiservice from "@pulumi/pulumiservice";
 import { organizationProvisioner, organizationReader } from "./automation.ts";
+import { githubRepositorySubject } from "./github.ts";
 import { iamApi, rootProject, stsApi } from "./rootProject.ts";
 import { yamlAsset } from "./utils/pulumi.ts";
 
@@ -10,9 +11,6 @@ const pulumiOrganization = "medusa-software";
 
 /** The Pulumi Cloud user whom automation acts as. */
 const pulumiUser = "medusa-software";
-
-/** GitHub's OIDC subject prefix for this repository, whose IDs a re-registered name can't match. */
-const githubRepositorySubject = "repo:medusa-software-hq@243778050/organization-infra@1387288516";
 
 /** The trust domain for tokens issued by Pulumi Cloud. */
 const pulumiCloudPool = new gcp.iam.WorkloadIdentityPool(
