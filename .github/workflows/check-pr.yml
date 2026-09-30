@@ -11,10 +11,6 @@ jobs:
     name: GitHub workflows
     uses: ./.github/workflows/check-gh-workflows.yml
 
-  preview-foundation:
-    name: Foundation
-    uses: ./.github/workflows/preview-foundation.yml
-    permissions:
-      contents: read
-      id-token: write
-      pull-requests: write
+  check-infra:
+    name: Infra
+    uses: ./.github/workflows/check-infra.yml

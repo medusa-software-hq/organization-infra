@@ -1,80 +1,80 @@
-import * as random from "@pulumi/random";
-import * as gcp from "@pulumi/gcp";
-import * as pulumi from "@pulumi/pulumi";
-import { billingAccount, organization } from "./organization.ts";
+import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
+import * as random from '@pulumi/random';
+import { billingAccount, organization } from './organization.ts';
 
 /** The random suffix of the root project ID. */
-const rootProjectSuffix = new random.RandomId("root-project-suffix", { byteLength: 4 });
+const rootProjectSuffix = new random.RandomId('root-project-suffix', { byteLength: 4 });
 
 /** The root project. */
 export const rootProject = new gcp.organizations.Project(
-  "root",
+  'root',
   {
-    name: "Root",
+    name: 'Root',
     projectId: pulumi.interpolate`ms-root-${rootProjectSuffix.hex}`,
     orgId: organization.orgId,
     billingAccount: billingAccount.id,
     // Deleting the root of trust must be a deliberate, two-step change
-    deletionPolicy: "PREVENT",
+    deletionPolicy: 'PREVENT',
   },
   { protect: true },
 );
 
 /** The Cloud Storage API in the root project. */
-export const storageApi = new gcp.projects.Service("storage-api", {
+export const storageApi = new gcp.projects.Service('storage-api', {
   project: rootProject.projectId,
-  service: "storage.googleapis.com",
+  service: 'storage.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The IAM API in the root project, for managing service accounts and workload identity. */
-export const iamApi = new gcp.projects.Service("iam-api", {
+export const iamApi = new gcp.projects.Service('iam-api', {
   project: rootProject.projectId,
-  service: "iam.googleapis.com",
+  service: 'iam.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The IAM Service Account Credentials API in the root project, for impersonating service accounts. */
-export const iamCredentialsApi = new gcp.projects.Service("iam-credentials-api", {
+export const iamCredentialsApi = new gcp.projects.Service('iam-credentials-api', {
   project: rootProject.projectId,
-  service: "iamcredentials.googleapis.com",
+  service: 'iamcredentials.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The Security Token Service API in the root project, for exchanging external tokens. */
-export const stsApi = new gcp.projects.Service("sts-api", {
+export const stsApi = new gcp.projects.Service('sts-api', {
   project: rootProject.projectId,
-  service: "sts.googleapis.com",
+  service: 'sts.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The Resource Manager API in the root project, which automation's API calls are billed to. */
-export const resourceManagerApi = new gcp.projects.Service("resource-manager-api", {
+export const resourceManagerApi = new gcp.projects.Service('resource-manager-api', {
   project: rootProject.projectId,
-  service: "cloudresourcemanager.googleapis.com",
+  service: 'cloudresourcemanager.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The Privileged Access Manager API in the root project, for automation requesting grants. */
 export const privilegedAccessManagerApi = new gcp.projects.Service(
-  "privileged-access-manager-api",
+  'privileged-access-manager-api',
   {
     project: rootProject.projectId,
-    service: "privilegedaccessmanager.googleapis.com",
+    service: 'privilegedaccessmanager.googleapis.com',
     disableOnDestroy: false,
   },
 );
 
 /** The Cloud Billing API in the root project, for automation linking projects to billing. */
-export const cloudBillingApi = new gcp.projects.Service("cloud-billing-api", {
+export const cloudBillingApi = new gcp.projects.Service('cloud-billing-api', {
   project: rootProject.projectId,
-  service: "cloudbilling.googleapis.com",
+  service: 'cloudbilling.googleapis.com',
   disableOnDestroy: false,
 });
 
 /** The Service Usage API in the root project, for automation enabling APIs in other projects. */
-export const serviceUsageApi = new gcp.projects.Service("service-usage-api", {
+export const serviceUsageApi = new gcp.projects.Service('service-usage-api', {
   project: rootProject.projectId,
-  service: "serviceusage.googleapis.com",
+  service: 'serviceusage.googleapis.com',
   disableOnDestroy: false,
 });

@@ -1,12 +1,12 @@
-import { organization } from "./organization.ts";
+import { organization } from './organization.ts';
 import {
   codefarmBaseProvisioner,
   codefarmBaseStateBucket,
   codefarmImageBuilder,
   codefarmReader,
   codefarmSharedProject,
-} from "./solutions/codefarm/base.ts";
-import { codefarmProduction, codefarmStaging } from "./solutions/codefarm/environments.ts";
+} from './solutions/codefarm/base.ts';
+import { codefarmProduction, codefarmStaging } from './solutions/codefarm/environments.ts';
 
 export const organizationId = organization.orgId;
 

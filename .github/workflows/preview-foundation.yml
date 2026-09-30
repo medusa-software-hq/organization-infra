@@ -1,7 +1,7 @@
 name: Preview foundation
 
 on:
-  workflow_call:
+  pull_request:
 
 permissions:
   contents: read

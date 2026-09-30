@@ -1,11 +1,11 @@
-import * as random from "@pulumi/random";
-import * as pulumi from "@pulumi/pulumi";
-import { primaryLocation } from "./organization.ts";
-import { rootProject, storageApi } from "./rootProject.ts";
-import { pulumiStateBucket } from "@medusa/infra-common/utils/pulumiStateBucket";
+import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket';
+import * as pulumi from '@pulumi/pulumi';
+import * as random from '@pulumi/random';
+import { primaryLocation } from './organization.ts';
+import { rootProject, storageApi } from './rootProject.ts';
 
 /** The random suffix of the bootstrap state bucket name. */
-const bootstrapStateBucketSuffix = new random.RandomId("bootstrap-state-bucket-suffix", {
+const bootstrapStateBucketSuffix = new random.RandomId('bootstrap-state-bucket-suffix', {
   byteLength: 4,
 });
 
@@ -14,7 +14,7 @@ export const bootstrapStateBucketName = pulumi.interpolate`ms-root-bootstrap-sta
 
 /** The bucket holding this stack's Pulumi state. */
 export const bootstrapStateBucket = pulumiStateBucket(
-  "bootstrap-state",
+  'bootstrap-state',
   rootProject.projectId,
   bootstrapStateBucketName,
   primaryLocation,

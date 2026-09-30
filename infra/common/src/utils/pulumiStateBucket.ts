@@ -1,5 +1,5 @@
-import * as gcp from "@pulumi/gcp";
-import * as pulumi from "@pulumi/pulumi";
+import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
 
 /** Declares a protected, versioned bucket for a stack's Pulumi state. */
 export function pulumiStateBucket(
@@ -16,11 +16,11 @@ export function pulumiStateBucket(
       name: bucketName,
       location,
       uniformBucketLevelAccess: true,
-      publicAccessPrevention: "enforced",
+      publicAccessPrevention: 'enforced',
       versioning: { enabled: true },
       lifecycleRules: [
         {
-          action: { type: "Delete" },
+          action: { type: 'Delete' },
           condition: { daysSinceNoncurrentTime: 90 },
         },
       ],

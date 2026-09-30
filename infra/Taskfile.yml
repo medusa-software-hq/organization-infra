@@ -17,9 +17,13 @@ tasks:
     desc: Type check all packages
     deps: [install]
     cmds:
-      - corepack yarn tsc -p common --noEmit
-      - corepack yarn tsc -p bootstrap --noEmit
-      - corepack yarn tsc -p foundation --noEmit
+      - corepack yarn tsc --noEmit
+
+  checkFormatting:
+    desc: Check formatting in all packages
+    deps: [install]
+    cmds:
+      - corepack yarn oxfmt --check "**/*.ts"
 
   fixFormatting:
     desc: Fix formatting in all packages
