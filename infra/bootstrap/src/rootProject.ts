@@ -71,10 +71,3 @@ export const cloudBillingApi = new gcp.projects.Service('cloud-billing-api', {
   service: 'cloudbilling.googleapis.com',
   disableOnDestroy: false,
 });
-
-/** The Service Usage API in the root project, for automation enabling APIs in other projects. */
-export const serviceUsageApi = new gcp.projects.Service('service-usage-api', {
-  project: rootProject.projectId,
-  service: 'serviceusage.googleapis.com',
-  disableOnDestroy: false,
-});
