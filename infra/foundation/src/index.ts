@@ -4,7 +4,7 @@ import {
   codefarmBaseStateBucket,
   codefarmImageBuilder,
   codefarmReader,
-  codefarmSharedProject,
+  codefarmBaseProject,
 } from './solutions/codefarm/base.ts';
 import { codefarmProduction, codefarmStaging } from './solutions/codefarm/environments.ts';
 
@@ -14,7 +14,7 @@ export const codefarm = {
   projectIds: {
     production: codefarmProduction.project.projectId,
     staging: codefarmStaging.project.projectId,
-    shared: codefarmSharedProject.projectId,
+    base: codefarmBaseProject.projectId,
   },
   serviceAccounts: {
     productionAppProvisioner: codefarmProduction.appProvisioner.email,

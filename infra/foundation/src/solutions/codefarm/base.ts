@@ -24,48 +24,54 @@ const codefarmRepository: GithubRepository = { name: 'codefarm', id: '1389872450
 
 export const codefarmFolder = solutionFolder(codefarm);
 
-/** Resources shared by the environments, like build artifacts; `x` for "cross-environment". */
-const codefarmShared = solutionProject(codefarm, codefarmFolder, 'x', 'shared');
+/** The base stack's project, for what the environments share, like build artifacts; `x` for "cross-environment". */
+const codefarmBase = solutionProject(codefarm, codefarmFolder, 'x', 'base');
 
-export const codefarmSharedProject = codefarmShared.project;
+export const codefarmBaseProject = codefarmBase.project;
 
-const { provider } = codefarmShared;
+const { provider } = codefarmBase;
 
-const sharedServices = solutionBaselineServices('codefarm-x', codefarmShared);
+const baseServices = solutionBaselineServices('codefarm-x', codefarmBase);
 
-/** Applies the base stack, which manages the shared project. */
+/** Makes the foundation forget, rather than delete, a resource Codefarm's base stack takes over. */
+export const handedOverToBase: pulumi.CustomResourceOptions = {
+  protect: false,
+  retainOnDelete: true,
+};
+
+/** Applies the base stack. */
 export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
   'codefarm-base-provisioner',
   {
-    project: codefarmSharedProject.projectId,
+    project: codefarmBaseProject.projectId,
     accountId: 'base-provisioner',
     displayName: 'Base provisioner',
   },
-  { provider, dependsOn: sharedServices },
+  { provider, dependsOn: baseServices },
 );
 
 /** Previews Codefarm's stacks from pull requests; never writes. */
 export const codefarmReader = new gcp.serviceaccount.Account(
   'codefarm-reader',
-  { project: codefarmSharedProject.projectId, accountId: 'reader', displayName: 'Reader' },
-  { provider, dependsOn: sharedServices },
+  { project: codefarmBaseProject.projectId, accountId: 'reader', displayName: 'Reader' },
+  { provider, dependsOn: baseServices },
 );
 
 /** Pushes the images built from the application code. */
 export const codefarmImageBuilder = new gcp.serviceaccount.Account(
   'codefarm-image-builder',
   {
-    project: codefarmSharedProject.projectId,
+    project: codefarmBaseProject.projectId,
     accountId: 'image-builder',
     displayName: 'Image builder',
   },
-  { provider, dependsOn: sharedServices },
+  { provider, dependsOn: baseServices, ...handedOverToBase },
 );
 
 new gcp.projects.IAMMember(
   'codefarm-base-provisioner-owner',
   {
-    project: codefarmSharedProject.projectId,
+    project: codefarmBaseProject.projectId,
     role: 'roles/owner',
     member: pulumi.interpolate`serviceAccount:${codefarmBaseProvisioner.email}`,
   },
@@ -75,7 +81,7 @@ new gcp.projects.IAMMember(
 new gcp.projects.IAMMember(
   'codefarm-reader-shared-viewer',
   {
-    project: codefarmSharedProject.projectId,
+    project: codefarmBaseProject.projectId,
     role: 'roles/viewer',
     member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
   },
@@ -112,10 +118,10 @@ const codefarmBaseStateBucketSuffix = new random.RandomId('codefarm-base-state-b
 
 export const codefarmBaseStateBucket = pulumiStateBucket(
   'codefarm-base-state',
-  codefarmSharedProject.projectId,
+  codefarmBaseProject.projectId,
   pulumi.interpolate`codefarm-base-state-${codefarmBaseStateBucketSuffix.hex}`,
   primaryLocation,
-  { provider, dependsOn: sharedServices },
+  { provider, dependsOn: baseServices },
 );
 
 new gcp.storage.BucketIAMMember(
