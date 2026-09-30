@@ -6,11 +6,16 @@ export function projectService(
   namePrefix: string,
   project: pulumi.Input<string>,
   service: string,
+  opts?: pulumi.CustomResourceOptions,
 ): gcp.projects.Service {
-  return new gcp.projects.Service(`${namePrefix}-${service.split('.')[0]}`, {
-    project,
-    service,
-    // Removing the resource shouldn't break whatever else still uses the API
-    disableOnDestroy: false,
-  });
+  return new gcp.projects.Service(
+    `${namePrefix}-${service.split('.')[0]}`,
+    {
+      project,
+      service,
+      // Removing the resource shouldn't break whatever else still uses the API
+      disableOnDestroy: false,
+    },
+    opts,
+  );
 }

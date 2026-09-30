@@ -43,8 +43,9 @@ class RootGithubPool {
     name: string,
     serviceAccount: gcp.serviceaccount.Account,
     repository: GithubRepository,
+    opts?: pulumi.CustomResourceOptions,
   ): gcp.serviceaccount.IAMMember {
-    return this.allow(name, serviceAccount, `${repositorySubject(repository)}:pull_request`);
+    return this.allow(name, serviceAccount, `${repositorySubject(repository)}:pull_request`, opts);
   }
 
   /** Lets the repository's runs on the branch act as the service account. */
@@ -53,11 +54,13 @@ class RootGithubPool {
     serviceAccount: gcp.serviceaccount.Account,
     repository: GithubRepository,
     branch: string,
+    opts?: pulumi.CustomResourceOptions,
   ): gcp.serviceaccount.IAMMember {
     return this.allow(
       name,
       serviceAccount,
       `${repositorySubject(repository)}:ref:refs/heads/${branch}`,
+      opts,
     );
   }
 
@@ -70,11 +73,13 @@ class RootGithubPool {
     serviceAccount: gcp.serviceaccount.Account,
     repository: GithubRepository,
     environment: string,
+    opts?: pulumi.CustomResourceOptions,
   ): gcp.serviceaccount.IAMMember {
     return this.allow(
       name,
       serviceAccount,
       `${repositorySubject(repository)}:environment:${environment}`,
+      opts,
     );
   }
 
@@ -82,12 +87,17 @@ class RootGithubPool {
     name: string,
     serviceAccount: gcp.serviceaccount.Account,
     subject: string,
+    opts?: pulumi.CustomResourceOptions,
   ): gcp.serviceaccount.IAMMember {
-    return new gcp.serviceaccount.IAMMember(name, {
-      serviceAccountId: serviceAccount.name,
-      role: 'roles/iam.workloadIdentityUser',
-      member: pulumi.interpolate`principal://iam.googleapis.com/${this.poolName}/subject/${subject}`,
-    });
+    return new gcp.serviceaccount.IAMMember(
+      name,
+      {
+        serviceAccountId: serviceAccount.name,
+        role: 'roles/iam.workloadIdentityUser',
+        member: pulumi.interpolate`principal://iam.googleapis.com/${this.poolName}/subject/${subject}`,
+      },
+      opts,
+    );
   }
 }
 

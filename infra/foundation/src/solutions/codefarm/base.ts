@@ -25,9 +25,13 @@ const codefarmRepository: GithubRepository = { name: 'codefarm', id: '1389872450
 export const codefarmFolder = solutionFolder(codefarm);
 
 /** Resources shared by the environments, like build artifacts; `x` for "cross-environment". */
-export const codefarmSharedProject = solutionProject(codefarm, codefarmFolder, 'x', 'shared');
+const codefarmShared = solutionProject(codefarm, codefarmFolder, 'x', 'shared');
 
-const sharedServices = solutionBaselineServices('codefarm-x', codefarmSharedProject);
+export const codefarmSharedProject = codefarmShared.project;
+
+const { provider } = codefarmShared;
+
+const sharedServices = solutionBaselineServices('codefarm-x', codefarmShared);
 
 /** Applies the base stack, which manages the shared project. */
 export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
@@ -37,14 +41,14 @@ export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
     accountId: 'base-provisioner',
     displayName: 'Base provisioner',
   },
-  { dependsOn: sharedServices },
+  { provider, dependsOn: sharedServices },
 );
 
 /** Previews Codefarm's stacks from pull requests; never writes. */
 export const codefarmReader = new gcp.serviceaccount.Account(
   'codefarm-reader',
   { project: codefarmSharedProject.projectId, accountId: 'reader', displayName: 'Reader' },
-  { dependsOn: sharedServices },
+  { provider, dependsOn: sharedServices },
 );
 
 /** Pushes the images built from the application code. */
@@ -55,32 +59,42 @@ export const codefarmImageBuilder = new gcp.serviceaccount.Account(
     accountId: 'image-builder',
     displayName: 'Image builder',
   },
-  { dependsOn: sharedServices },
+  { provider, dependsOn: sharedServices },
 );
 
-new gcp.projects.IAMMember('codefarm-base-provisioner-owner', {
-  project: codefarmSharedProject.projectId,
-  role: 'roles/owner',
-  member: pulumi.interpolate`serviceAccount:${codefarmBaseProvisioner.email}`,
-});
+new gcp.projects.IAMMember(
+  'codefarm-base-provisioner-owner',
+  {
+    project: codefarmSharedProject.projectId,
+    role: 'roles/owner',
+    member: pulumi.interpolate`serviceAccount:${codefarmBaseProvisioner.email}`,
+  },
+  { provider },
+);
 
-new gcp.projects.IAMMember('codefarm-reader-shared-viewer', {
-  project: codefarmSharedProject.projectId,
-  role: 'roles/viewer',
-  member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
-});
+new gcp.projects.IAMMember(
+  'codefarm-reader-shared-viewer',
+  {
+    project: codefarmSharedProject.projectId,
+    role: 'roles/viewer',
+    member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+  },
+  { provider },
+);
 
 rootGithubPool.allowRunsOnBranch(
   'codefarm-base-provisioner-github',
   codefarmBaseProvisioner,
   codefarmInfraRepository,
   'main',
+  { provider },
 );
 
 rootGithubPool.allowRunsOnPullRequests(
   'codefarm-reader-github',
   codefarmReader,
   codefarmInfraRepository,
+  { provider },
 );
 
 rootGithubPool.allowRunsOnBranch(
@@ -88,6 +102,7 @@ rootGithubPool.allowRunsOnBranch(
   codefarmImageBuilder,
   codefarmRepository,
   'main',
+  { provider },
 );
 
 /** The random suffix of the base state bucket name. */
@@ -100,11 +115,15 @@ export const codefarmBaseStateBucket = pulumiStateBucket(
   codefarmSharedProject.projectId,
   pulumi.interpolate`codefarm-base-state-${codefarmBaseStateBucketSuffix.hex}`,
   primaryLocation,
-  { dependsOn: sharedServices },
+  { provider, dependsOn: sharedServices },
 );
 
-new gcp.storage.BucketIAMMember('codefarm-reader-base-state', {
-  bucket: codefarmBaseStateBucket.name,
-  role: 'roles/storage.objectViewer',
-  member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
-});
+new gcp.storage.BucketIAMMember(
+  'codefarm-reader-base-state',
+  {
+    bucket: codefarmBaseStateBucket.name,
+    role: 'roles/storage.objectViewer',
+    member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+  },
+  { provider },
+);
