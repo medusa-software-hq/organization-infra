@@ -34,17 +34,24 @@ export function solutionFolder(solution: Solution): gcp.organizations.Folder {
   );
 }
 
+/** One of a solution's projects, with the provider for declaring resources inside it. */
+export interface SolutionProject {
+  readonly project: gcp.organizations.Project;
+  /** Counts requests against the project itself, rather than the caller's project. */
+  readonly provider: gcp.Provider;
+}
+
 /** Declares one of a solution's projects, e.g. `codefarm-p-1a2b3c` named "Codefarm - production". */
 export function solutionProject(
   solution: Solution,
   folder: gcp.organizations.Folder,
   code: string,
   name: string,
-): gcp.organizations.Project {
+): SolutionProject {
   const resourceName = `${solution.id}-${code}`;
   const suffix = new random.RandomId(`${resourceName}-project-suffix`, { byteLength: 3 });
 
-  return new gcp.organizations.Project(
+  const project = new gcp.organizations.Project(
     resourceName,
     {
       projectId: pulumi.interpolate`${resourceName}-${suffix.hex}`,
@@ -55,18 +62,28 @@ export function solutionProject(
     },
     { protect: true },
   );
+
+  const provider = new gcp.Provider(resourceName, {
+    project: project.projectId,
+    billingProject: project.projectId,
+    userProjectOverride: true,
+  });
+
+  return { project, provider };
 }
 
 /** Enables the APIs a solution's identities need before they can manage its project themselves. */
 export function solutionBaselineServices(
   namePrefix: string,
-  project: gcp.organizations.Project,
+  { project, provider }: SolutionProject,
 ): gcp.projects.Service[] {
   return [
-    projectService(namePrefix, project.projectId, 'cloudresourcemanager.googleapis.com'),
-    projectService(namePrefix, project.projectId, 'serviceusage.googleapis.com'),
-    projectService(namePrefix, project.projectId, 'iam.googleapis.com'),
-    projectService(namePrefix, project.projectId, 'iamcredentials.googleapis.com'),
-    projectService(namePrefix, project.projectId, 'storage.googleapis.com'),
+    projectService(namePrefix, project.projectId, 'cloudresourcemanager.googleapis.com', {
+      provider,
+    }),
+    projectService(namePrefix, project.projectId, 'serviceusage.googleapis.com', { provider }),
+    projectService(namePrefix, project.projectId, 'iam.googleapis.com', { provider }),
+    projectService(namePrefix, project.projectId, 'iamcredentials.googleapis.com', { provider }),
+    projectService(namePrefix, project.projectId, 'storage.googleapis.com', { provider }),
   ];
 }

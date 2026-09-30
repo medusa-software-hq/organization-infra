@@ -1,8 +1,10 @@
+import { projectService } from '@medusa/infra-common/utils/projectService';
+import { pulumiSecretsKey } from '@medusa/infra-common/utils/pulumiSecretsKey';
 import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket';
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
-import { primaryLocation, rootGithubPool } from '../../organization.ts';
+import { organizationAdminsGroup, primaryLocation, rootGithubPool } from '../../organization.ts';
 import {
   type Environment,
   production,
@@ -21,27 +23,39 @@ export interface CodefarmEnvironment {
 
 /** Declares an environment's project, the provisioner of its app stack, and the stack's state. */
 function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
-  const project = solutionProject(codefarm, codefarmFolder, environment.code, environment.name);
+  const environmentProject = solutionProject(
+    codefarm,
+    codefarmFolder,
+    environment.code,
+    environment.name,
+  );
 
-  const services = solutionBaselineServices(`codefarm-${environment.code}`, project);
+  const { project, provider } = environmentProject;
+
+  const services = solutionBaselineServices(`codefarm-${environment.code}`, environmentProject);
 
   const appProvisioner = new gcp.serviceaccount.Account(
     `codefarm-app-${environment.name}-provisioner`,
     { project: project.projectId, accountId: 'app-provisioner', displayName: 'App provisioner' },
-    { dependsOn: services },
+    { provider, dependsOn: services },
   );
 
-  new gcp.projects.IAMMember(`codefarm-app-${environment.name}-provisioner-owner`, {
-    project: project.projectId,
-    role: 'roles/owner',
-    member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
-  });
+  new gcp.projects.IAMMember(
+    `codefarm-app-${environment.name}-provisioner-owner`,
+    {
+      project: project.projectId,
+      role: 'roles/owner',
+      member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
+    },
+    { provider },
+  );
 
   rootGithubPool.allowRunsInEnvironment(
     `codefarm-app-${environment.name}-provisioner-github`,
     appProvisioner,
     codefarmInfraRepository,
     environment.name,
+    { provider },
   );
 
   const appStateBucketSuffix = new random.RandomId(
@@ -54,20 +68,66 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
     project.projectId,
     pulumi.interpolate`codefarm-app-${environment.name}-state-${appStateBucketSuffix.hex}`,
     primaryLocation,
-    { dependsOn: services },
+    { provider, dependsOn: services },
   );
 
-  new gcp.projects.IAMMember(`codefarm-reader-${environment.name}-viewer`, {
-    project: project.projectId,
-    role: 'roles/viewer',
-    member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
-  });
+  const kmsService = projectService(
+    `codefarm-${environment.code}`,
+    project.projectId,
+    'cloudkms.googleapis.com',
+    { provider },
+  );
 
-  new gcp.storage.BucketIAMMember(`codefarm-reader-${environment.name}-state`, {
-    bucket: appStateBucket.name,
-    role: 'roles/storage.objectViewer',
-    member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
-  });
+  const secretsKey = pulumiSecretsKey(
+    `codefarm-${environment.name}`,
+    project.projectId,
+    primaryLocation,
+    {
+      provider,
+      dependsOn: [kmsService],
+    },
+  );
+
+  new gcp.kms.CryptoKeyIAMMember(
+    `codefarm-app-${environment.name}-provisioner-secrets-key`,
+    {
+      cryptoKeyId: secretsKey.id,
+      role: 'roles/cloudkms.cryptoKeyEncrypterDecrypter',
+      member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
+    },
+    { provider },
+  );
+
+  // Lets organization admins create stacks with the key: that only takes encrypting, which reveals nothing
+  new gcp.kms.CryptoKeyIAMMember(
+    `codefarm-${environment.name}-organization-admins-secrets-key`,
+    {
+      cryptoKeyId: secretsKey.id,
+      role: 'roles/cloudkms.cryptoKeyEncrypter',
+      member: organizationAdminsGroup,
+    },
+    { provider },
+  );
+
+  new gcp.projects.IAMMember(
+    `codefarm-reader-${environment.name}-viewer`,
+    {
+      project: project.projectId,
+      role: 'roles/viewer',
+      member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+    },
+    { provider },
+  );
+
+  new gcp.storage.BucketIAMMember(
+    `codefarm-reader-${environment.name}-state`,
+    {
+      bucket: appStateBucket.name,
+      role: 'roles/storage.objectViewer',
+      member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+    },
+    { provider },
+  );
 
   return { project, appProvisioner, appStateBucket };
 }
