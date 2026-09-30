@@ -14,6 +14,3 @@ export const primaryLocation = 'europe-central2';
 
 /** The root project's GitHub pool, through which workflows act as service accounts. */
 export const rootGithubPool = referenceRootGithubPool();
-
-/** The group of the organization's administrators. */
-export const organizationAdminsGroup = 'group:gcp-organization-admins@medusa.software';

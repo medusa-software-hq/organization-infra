@@ -4,7 +4,7 @@ import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket'
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
-import { organizationAdminsGroup, primaryLocation, rootGithubPool } from '../../organization.ts';
+import { primaryLocation, rootGithubPool } from '../../organization.ts';
 import {
   type Environment,
   production,
@@ -94,17 +94,6 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
       cryptoKeyId: secretsKey.id,
       role: 'roles/cloudkms.cryptoKeyEncrypterDecrypter',
       member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
-    },
-    { provider },
-  );
-
-  // Lets organization admins create stacks with the key: that only takes encrypting, which reveals nothing
-  new gcp.kms.CryptoKeyIAMMember(
-    `codefarm-${environment.name}-organization-admins-secrets-key`,
-    {
-      cryptoKeyId: secretsKey.id,
-      role: 'roles/cloudkms.cryptoKeyEncrypter',
-      member: organizationAdminsGroup,
     },
     { provider },
   );
