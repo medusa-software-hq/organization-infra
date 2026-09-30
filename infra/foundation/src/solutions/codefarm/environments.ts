@@ -12,7 +12,14 @@ import {
   solutionProject,
   staging,
 } from '../convention.ts';
-import { codefarm, codefarmFolder, codefarmInfraRepository, codefarmReader } from './base.ts';
+import {
+  codefarm,
+  codefarmBaseProvisioner,
+  codefarmFolder,
+  codefarmInfraRepository,
+  codefarmReader,
+  handedOverToBase,
+} from './base.ts';
 
 /** One of Codefarm's environments: a project, applied by its own app stack. */
 export interface CodefarmEnvironment {
@@ -37,7 +44,7 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
   const appProvisioner = new gcp.serviceaccount.Account(
     `codefarm-app-${environment.name}-provisioner`,
     { project: project.projectId, accountId: 'app-provisioner', displayName: 'App provisioner' },
-    { provider, dependsOn: services },
+    { provider, dependsOn: services, ...handedOverToBase },
   );
 
   new gcp.projects.IAMMember(
@@ -46,6 +53,16 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
       project: project.projectId,
       role: 'roles/owner',
       member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
+    },
+    { provider, ...handedOverToBase },
+  );
+
+  new gcp.projects.IAMMember(
+    `codefarm-base-provisioner-${environment.name}-owner`,
+    {
+      project: project.projectId,
+      role: 'roles/owner',
+      member: pulumi.interpolate`serviceAccount:${codefarmBaseProvisioner.email}`,
     },
     { provider },
   );
@@ -68,14 +85,14 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
     project.projectId,
     pulumi.interpolate`codefarm-app-${environment.name}-state-${appStateBucketSuffix.hex}`,
     primaryLocation,
-    { provider, dependsOn: services },
+    { provider, dependsOn: services, ...handedOverToBase },
   );
 
   const kmsService = projectService(
     `codefarm-${environment.code}`,
     project.projectId,
     'cloudkms.googleapis.com',
-    { provider },
+    { provider, ...handedOverToBase },
   );
 
   const secretsKey = pulumiSecretsKey(
@@ -85,6 +102,7 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
     {
       provider,
       dependsOn: [kmsService],
+      ...handedOverToBase,
     },
   );
 
@@ -95,7 +113,7 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
       role: 'roles/cloudkms.cryptoKeyEncrypterDecrypter',
       member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
     },
-    { provider },
+    { provider, ...handedOverToBase },
   );
 
   new gcp.projects.IAMMember(
@@ -105,7 +123,7 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
       role: 'roles/viewer',
       member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
     },
-    { provider },
+    { provider, ...handedOverToBase },
   );
 
   new gcp.storage.BucketIAMMember(
@@ -115,7 +133,7 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
       role: 'roles/storage.objectViewer',
       member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
     },
-    { provider },
+    { provider, ...handedOverToBase },
   );
 
   return { project, appProvisioner, appStateBucket };
