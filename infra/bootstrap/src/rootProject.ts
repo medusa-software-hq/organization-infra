@@ -76,5 +76,6 @@ export const cloudBillingApi = new gcp.projects.Service('cloud-billing-api', {
 export const serviceUsageApi = new gcp.projects.Service('service-usage-api', {
   project: rootProject.projectId,
   service: 'serviceusage.googleapis.com',
-  disableOnDestroy: false,
+  // TODO: Remove; unused since solution projects' resources are declared through their own providers
+  disableOnDestroy: true,
 });
