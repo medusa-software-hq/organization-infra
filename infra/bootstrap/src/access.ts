@@ -1,12 +1,13 @@
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
 import { organization, organizationAdminsGroup, superAdmin } from "./organization.ts";
-import { organizationProvisioner, organizationReader } from "./automation.ts";
+import { bootstrapStateBucketName } from "./bootstrap.ts";
 import {
-  bootstrapStateBucketName,
+  foundationProvisioner,
+  foundationReader,
   foundationStateBucket,
   foundationStateBucketName,
-} from "./stateBuckets.ts";
+} from "./foundation.ts";
 
 /** The service agent of Privileged Access Manager, shared by the whole organization. */
 const pamServiceAgent = new gcp.iam.WorkloadIdentityServiceAgent("pam", {
@@ -73,7 +74,7 @@ new gcp.privilegedaccessmanager.Entitlement(
     location: "global",
     entitlementId: "automated-administration",
     eligibleUsers: [
-      { principals: [pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`] },
+      { principals: [pulumi.interpolate`serviceAccount:${foundationProvisioner.email}`] },
     ],
     privilegedAccess: {
       gcpIamAccess: {
@@ -115,51 +116,51 @@ new gcp.organizations.IAMMember("organization-admins-browser", {
 new gcp.organizations.IAMMember("organization-reader-viewer", {
   orgId: organization.orgId,
   role: "roles/viewer",
-  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationReader.email}`,
 });
 
-/** Lets the organization reader look up the organization itself, which viewers can't. */
+/** Lets the foundation reader look up the organization itself, which viewers can't. */
 new gcp.organizations.IAMMember("organization-reader-browser", {
   orgId: organization.orgId,
   role: "roles/browser",
-  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationReader.email}`,
 });
 
-/** Lets the organization reader see organization and folder IAM policies, which viewers can't. */
+/** Lets the foundation reader see organization and folder IAM policies, which viewers can't. */
 new gcp.organizations.IAMMember("organization-reader-security-reviewer", {
   orgId: organization.orgId,
   role: "roles/iam.securityReviewer",
-  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationReader.email}`,
 });
 
 new gcp.organizations.IAMMember("organization-provisioner-viewer", {
   orgId: organization.orgId,
   role: "roles/viewer",
-  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationProvisioner.email}`,
 });
 
-/** Lets the organization provisioner look up the organization itself, which viewers can't. */
+/** Lets the foundation provisioner look up the organization itself, which viewers can't. */
 new gcp.organizations.IAMMember("organization-provisioner-browser", {
   orgId: organization.orgId,
   role: "roles/browser",
-  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationProvisioner.email}`,
 });
 
-/** Lets the organization provisioner see organization and folder IAM policies, which viewers can't. */
+/** Lets the foundation provisioner see organization and folder IAM policies, which viewers can't. */
 new gcp.organizations.IAMMember("organization-provisioner-security-reviewer", {
   orgId: organization.orgId,
   role: "roles/iam.securityReviewer",
-  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationProvisioner.email}`,
 });
 
 new gcp.storage.BucketIAMMember("organization-reader-foundation-state", {
   bucket: foundationStateBucket.name,
   role: "roles/storage.objectViewer",
-  member: pulumi.interpolate`serviceAccount:${organizationReader.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationReader.email}`,
 });
 
 new gcp.storage.BucketIAMMember("organization-provisioner-foundation-state", {
   bucket: foundationStateBucket.name,
   role: "roles/storage.objectAdmin",
-  member: pulumi.interpolate`serviceAccount:${organizationProvisioner.email}`,
+  member: pulumi.interpolate`serviceAccount:${foundationProvisioner.email}`,
 });

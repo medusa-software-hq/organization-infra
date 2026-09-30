@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - infra/foundation/**
+      - infra/common/**
+      - infra/package.json
+      - infra/yarn.lock
       - .github/workflows/apply-foundation.yml
   workflow_dispatch:
 
@@ -31,10 +34,10 @@ jobs:
 
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version-file: infra/foundation/.nvmrc
+          node-version-file: infra/.nvmrc
 
       - name: Install dependencies
-        working-directory: infra/foundation
+        working-directory: infra
         run: corepack yarn install --immutable
 
       - name: Log in to GCP as the organization provisioner

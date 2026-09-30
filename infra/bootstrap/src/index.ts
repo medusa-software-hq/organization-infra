@@ -1,8 +1,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import { rootProject } from "./rootProject.ts";
-import { organizationProvisioner, organizationReader } from "./automation.ts";
-import { githubActionsProvider } from "./github.ts";
-import { bootstrapStateBucket, foundationStateBucket } from "./stateBuckets.ts";
+import { rootGithubPool } from "./github.ts";
+import { bootstrapStateBucket } from "./bootstrap.ts";
+import { foundationProvisioner, foundationReader, foundationStateBucket } from "./foundation.ts";
 import "./access.ts";
 import "./organizationPolicies.ts";
 
@@ -12,8 +12,8 @@ export const bootstrapStateBucketUrl = pulumi.interpolate`gs://${bootstrapStateB
 
 export const foundationStateBucketUrl = pulumi.interpolate`gs://${foundationStateBucket.name}`;
 
-export const githubActionsProviderName = githubActionsProvider.name;
+export const githubActionsProviderName = rootGithubPool.providerName;
 
-export const organizationReaderEmail = organizationReader.email;
+export const foundationReaderEmail = foundationReader.email;
 
-export const organizationProvisionerEmail = organizationProvisioner.email;
+export const foundationProvisionerEmail = foundationProvisioner.email;

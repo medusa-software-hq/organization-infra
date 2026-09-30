@@ -6,39 +6,17 @@ env:
 
 tasks:
   install:
-    desc: Install dependencies
+    internal: true
     run: once
+    dir: ..
     sources:
       - package.json
+      - '*/package.json'
       - yarn.lock
     generates:
       - .yarn/install-state.gz
     cmds:
       - corepack yarn install --immutable
-
-  typecheck:
-    desc: Type check the package
-    deps: [install]
-    cmds:
-      - corepack yarn tsc --noEmit
-
-  fixFormatting:
-    desc: Fix package formatting
-    deps: [install]
-    cmds:
-      - corepack yarn oxfmt --write "**/*.ts"
-
-  lint:
-    desc: Lint the package
-    deps: [install]
-    cmds:
-      - corepack yarn oxlint --type-aware
-
-  fixLint:
-    desc: Fix lint issues in the package
-    deps: [install]
-    cmds:
-      - corepack yarn oxlint --type-aware --fix
 
   selectStack:
     internal: true
