@@ -2,7 +2,7 @@ import * as random from "@pulumi/random";
 import * as pulumi from "@pulumi/pulumi";
 import { primaryLocation } from "./organization.ts";
 import { rootProject, storageApi } from "./rootProject.ts";
-import { pulumiStateBucket } from "./utils/pulumiStateBucket.ts";
+import { pulumiStateBucket } from "@medusa/infra-common/utils/pulumiStateBucket";
 
 /** The random suffix of the bootstrap state bucket name. */
 const bootstrapStateBucketSuffix = new random.RandomId("bootstrap-state-bucket-suffix", {

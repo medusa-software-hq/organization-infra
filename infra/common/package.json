@@ -1,0 +1,13 @@
+{
+  "name": "@medusa/infra-common",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@pulumi/gcp": "^9.0.0",
+    "@pulumi/pulumi": "^3.150.0"
+  }
+}

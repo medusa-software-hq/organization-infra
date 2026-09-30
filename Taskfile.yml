@@ -5,6 +5,10 @@ includes:
     taskfile: github.Taskfile.yml
     dir: .
 
+  infra:
+    taskfile: infra/Taskfile.yml
+    dir: infra
+
   bootstrap:
     taskfile: infra/bootstrap/Taskfile.yml
     dir: infra/bootstrap

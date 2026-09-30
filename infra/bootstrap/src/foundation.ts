@@ -1,9 +1,11 @@
 import * as random from "@pulumi/random";
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
+import type { GithubRepository } from "@medusa/infra-common/rootGithubPool";
+import { rootGithubPool } from "./github.ts";
 import { primaryLocation } from "./organization.ts";
 import { iamApi, rootProject, storageApi } from "./rootProject.ts";
-import { pulumiStateBucket } from "./utils/pulumiStateBucket.ts";
+import { pulumiStateBucket } from "@medusa/infra-common/utils/pulumiStateBucket";
 
 /** The identity that applies the foundation stack. */
 export const foundationProvisioner = new gcp.serviceaccount.Account(
@@ -25,6 +27,25 @@ export const foundationReader = new gcp.serviceaccount.Account(
     displayName: "Organization reader",
   },
   { dependsOn: [iamApi] },
+);
+
+/** The GitHub repository of this organization's infrastructure. */
+const organizationInfraRepository: GithubRepository = {
+  name: "organization-infra",
+  id: "1387288516",
+};
+
+rootGithubPool.allowRunsOnPullRequests(
+  "organization-reader-user-github-pull-request",
+  foundationReader,
+  organizationInfraRepository,
+);
+
+rootGithubPool.allowRunsOnBranch(
+  "organization-provisioner-user-github-main",
+  foundationProvisioner,
+  organizationInfraRepository,
+  "main",
 );
 
 /** The random suffix of the foundation state bucket name. */
