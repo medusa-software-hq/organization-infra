@@ -1,16 +1,16 @@
-import * as random from "@pulumi/random";
-import * as gcp from "@pulumi/gcp";
-import * as pulumi from "@pulumi/pulumi";
-import { primaryLocation, rootGithubPool } from "../../organization.ts";
-import { pulumiStateBucket } from "@medusa/infra-common/utils/pulumiStateBucket";
+import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket';
+import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
+import * as random from '@pulumi/random';
+import { primaryLocation, rootGithubPool } from '../../organization.ts';
 import {
   type Environment,
   production,
   solutionBaselineServices,
   solutionProject,
   staging,
-} from "../convention.ts";
-import { codefarm, codefarmFolder, codefarmInfraRepository, codefarmReader } from "./base.ts";
+} from '../convention.ts';
+import { codefarm, codefarmFolder, codefarmInfraRepository, codefarmReader } from './base.ts';
 
 /** One of Codefarm's environments: a project, applied by its own app stack. */
 export interface CodefarmEnvironment {
@@ -27,13 +27,13 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
 
   const appProvisioner = new gcp.serviceaccount.Account(
     `codefarm-app-${environment.name}-provisioner`,
-    { project: project.projectId, accountId: "app-provisioner", displayName: "App provisioner" },
+    { project: project.projectId, accountId: 'app-provisioner', displayName: 'App provisioner' },
     { dependsOn: services },
   );
 
   new gcp.projects.IAMMember(`codefarm-app-${environment.name}-provisioner-owner`, {
     project: project.projectId,
-    role: "roles/owner",
+    role: 'roles/owner',
     member: pulumi.interpolate`serviceAccount:${appProvisioner.email}`,
   });
 
@@ -59,13 +59,13 @@ function codefarmEnvironment(environment: Environment): CodefarmEnvironment {
 
   new gcp.projects.IAMMember(`codefarm-reader-${environment.name}-viewer`, {
     project: project.projectId,
-    role: "roles/viewer",
+    role: 'roles/viewer',
     member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
   });
 
   new gcp.storage.BucketIAMMember(`codefarm-reader-${environment.name}-state`, {
     bucket: appStateBucket.name,
-    role: "roles/storage.objectViewer",
+    role: 'roles/storage.objectViewer',
     member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
   });
 

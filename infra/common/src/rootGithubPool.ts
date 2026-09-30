@@ -1,10 +1,10 @@
-import * as gcp from "@pulumi/gcp";
-import * as pulumi from "@pulumi/pulumi";
+import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
 
 /** The GitHub organization whose repositories the pool trusts. */
 const githubOrganization = {
-  name: "medusa-software-hq",
-  id: "243778050",
+  name: 'medusa-software-hq',
+  id: '243778050',
 };
 
 /** A GitHub repository, identified by its immutable ID as well as its name. */
@@ -14,11 +14,11 @@ export interface GithubRepository {
 }
 
 /** The number of the root project, where the pool lives. */
-const rootProjectNumber = "626887270411";
+const rootProjectNumber = '626887270411';
 
-const poolId = "github";
+const poolId = 'github';
 
-const providerId = "github-actions";
+const providerId = 'github-actions';
 
 /** The pool's full name, as declared in the root project. */
 const rootGithubPoolName = `projects/${rootProjectNumber}/locations/global/workloadIdentityPools/${poolId}`;
@@ -85,7 +85,7 @@ class RootGithubPool {
   ): gcp.serviceaccount.IAMMember {
     return new gcp.serviceaccount.IAMMember(name, {
       serviceAccountId: serviceAccount.name,
-      role: "roles/iam.workloadIdentityUser",
+      role: 'roles/iam.workloadIdentityUser',
       member: pulumi.interpolate`principal://iam.googleapis.com/${this.poolName}/subject/${subject}`,
     });
   }
@@ -99,23 +99,23 @@ export function declareRootGithubPool(
   opts?: pulumi.CustomResourceOptions,
 ): RootGithubPool {
   const pool = new gcp.iam.WorkloadIdentityPool(
-    "github",
+    'github',
     {
       project,
       workloadIdentityPoolId: poolId,
-      displayName: "GitHub",
+      displayName: 'GitHub',
     },
     opts,
   );
 
-  const provider = new gcp.iam.WorkloadIdentityPoolProvider("github-actions", {
+  const provider = new gcp.iam.WorkloadIdentityPoolProvider('github-actions', {
     project,
     workloadIdentityPoolId: pool.workloadIdentityPoolId,
     workloadIdentityPoolProviderId: providerId,
-    displayName: "GitHub Actions",
-    oidc: { issuerUri: "https://token.actions.githubusercontent.com" },
+    displayName: 'GitHub Actions',
+    oidc: { issuerUri: 'https://token.actions.githubusercontent.com' },
     // The subject is what principals match, so it must stay in sync with `repositorySubject()`
-    attributeMapping: { "google.subject": "assertion.sub" },
+    attributeMapping: { 'google.subject': 'assertion.sub' },
     attributeCondition: `assertion.repository_owner_id == "${githubOrganization.id}"`,
   });
 

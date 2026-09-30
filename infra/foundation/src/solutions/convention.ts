@@ -1,9 +1,9 @@
-import * as random from "@pulumi/random";
-import * as gcp from "@pulumi/gcp";
-import * as pulumi from "@pulumi/pulumi";
-import { billingAccountId } from "../organization.ts";
-import { solutionsFolder } from "../solutions.ts";
-import { projectService } from "@medusa/infra-common/utils/projectService";
+import { projectService } from '@medusa/infra-common/utils/projectService';
+import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
+import * as random from '@pulumi/random';
+import { billingAccountId } from '../organization.ts';
+import { solutionsFolder } from '../solutions.ts';
 
 /** A product the organization develops, with its own folder and projects. */
 export interface Solution {
@@ -18,9 +18,9 @@ export interface Environment {
   readonly name: string;
 }
 
-export const production: Environment = { code: "p", name: "production" };
+export const production: Environment = { code: 'p', name: 'production' };
 
-export const staging: Environment = { code: "s", name: "staging" };
+export const staging: Environment = { code: 's', name: 'staging' };
 
 /** Declares a solution's folder. */
 export function solutionFolder(solution: Solution): gcp.organizations.Folder {
@@ -51,7 +51,7 @@ export function solutionProject(
       name: `${solution.name} - ${name}`,
       folderId: folder.folderId,
       billingAccount: billingAccountId,
-      deletionPolicy: "PREVENT",
+      deletionPolicy: 'PREVENT',
     },
     { protect: true },
   );
@@ -63,10 +63,10 @@ export function solutionBaselineServices(
   project: gcp.organizations.Project,
 ): gcp.projects.Service[] {
   return [
-    projectService(namePrefix, project.projectId, "cloudresourcemanager.googleapis.com"),
-    projectService(namePrefix, project.projectId, "serviceusage.googleapis.com"),
-    projectService(namePrefix, project.projectId, "iam.googleapis.com"),
-    projectService(namePrefix, project.projectId, "iamcredentials.googleapis.com"),
-    projectService(namePrefix, project.projectId, "storage.googleapis.com"),
+    projectService(namePrefix, project.projectId, 'cloudresourcemanager.googleapis.com'),
+    projectService(namePrefix, project.projectId, 'serviceusage.googleapis.com'),
+    projectService(namePrefix, project.projectId, 'iam.googleapis.com'),
+    projectService(namePrefix, project.projectId, 'iamcredentials.googleapis.com'),
+    projectService(namePrefix, project.projectId, 'storage.googleapis.com'),
   ];
 }

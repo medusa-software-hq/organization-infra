@@ -1,10 +1,10 @@
-import * as pulumi from "@pulumi/pulumi";
-import { rootProject } from "./rootProject.ts";
-import { rootGithubPool } from "./github.ts";
-import { bootstrapStateBucket } from "./bootstrap.ts";
-import { foundationProvisioner, foundationReader, foundationStateBucket } from "./foundation.ts";
-import "./access.ts";
-import "./organizationPolicies.ts";
+import * as pulumi from '@pulumi/pulumi';
+import { bootstrapStateBucket } from './bootstrap.ts';
+import { foundationProvisioner, foundationReader, foundationStateBucket } from './foundation.ts';
+import { rootGithubPool } from './github.ts';
+import { rootProject } from './rootProject.ts';
+import './access.ts';
+import './organizationPolicies.ts';
 
 export const rootProjectId = rootProject.projectId;
 
