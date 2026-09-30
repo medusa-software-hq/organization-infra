@@ -19,9 +19,6 @@ export const codefarmInfraRepository: GithubRepository = {
   id: '1389872325',
 };
 
-/** The repository of Codefarm's application code. */
-const codefarmRepository: GithubRepository = { name: 'codefarm', id: '1389872450' };
-
 export const codefarmFolder = solutionFolder(codefarm);
 
 /** The base stack's project, for what the environments share, like build artifacts; `x` for "cross-environment". */
@@ -32,12 +29,6 @@ export const codefarmBaseProject = codefarmBase.project;
 const { provider } = codefarmBase;
 
 const baseServices = solutionBaselineServices('codefarm-x', codefarmBase);
-
-/** Makes the foundation forget, rather than delete, a resource Codefarm's base stack takes over. */
-export const handedOverToBase: pulumi.CustomResourceOptions = {
-  protect: false,
-  retainOnDelete: true,
-};
 
 /** Applies the base stack. */
 export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
@@ -55,17 +46,6 @@ export const codefarmReader = new gcp.serviceaccount.Account(
   'codefarm-reader',
   { project: codefarmBaseProject.projectId, accountId: 'reader', displayName: 'Reader' },
   { provider, dependsOn: baseServices },
-);
-
-/** Pushes the images built from the application code. */
-export const codefarmImageBuilder = new gcp.serviceaccount.Account(
-  'codefarm-image-builder',
-  {
-    project: codefarmBaseProject.projectId,
-    accountId: 'image-builder',
-    displayName: 'Image builder',
-  },
-  { provider, dependsOn: baseServices, ...handedOverToBase },
 );
 
 new gcp.projects.IAMMember(
@@ -100,14 +80,6 @@ rootGithubPool.allowRunsOnPullRequests(
   'codefarm-reader-github',
   codefarmReader,
   codefarmInfraRepository,
-  { provider },
-);
-
-rootGithubPool.allowRunsOnBranch(
-  'codefarm-image-builder-github',
-  codefarmImageBuilder,
-  codefarmRepository,
-  'main',
   { provider },
 );
 
