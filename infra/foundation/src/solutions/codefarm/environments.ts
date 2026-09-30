@@ -43,6 +43,17 @@ function codefarmEnvironment(environment: Environment): gcp.organizations.Projec
     { provider },
   );
 
+  // Lets the reader preview the IAM that Codefarm's stacks manage, which viewers can't see
+  new gcp.projects.IAMMember(
+    `codefarm-reader-${environment.name}-security-reviewer`,
+    {
+      project: project.projectId,
+      role: 'roles/iam.securityReviewer',
+      member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+    },
+    { provider },
+  );
+
   return project;
 }
 

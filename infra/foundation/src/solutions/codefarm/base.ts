@@ -68,6 +68,17 @@ new gcp.projects.IAMMember(
   { provider },
 );
 
+// Lets the reader preview the IAM that Codefarm's stacks manage, which viewers can't see
+new gcp.projects.IAMMember(
+  'codefarm-reader-base-security-reviewer',
+  {
+    project: codefarmBaseProject.projectId,
+    role: 'roles/iam.securityReviewer',
+    member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
+  },
+  { provider },
+);
+
 rootGithubPool.allowRunsOnBranch(
   'codefarm-base-provisioner-github',
   codefarmBaseProvisioner,
