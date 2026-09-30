@@ -1,6 +1,6 @@
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";
-import { organizationProvisioner, organizationReader } from "./automation.ts";
+import { foundationProvisioner, foundationReader } from "./foundation.ts";
 import { iamApi, rootProject, stsApi } from "./rootProject.ts";
 
 /** The GitHub organization whose repositories GCP trusts. */
@@ -40,16 +40,16 @@ export const githubActionsProvider = new gcp.iam.WorkloadIdentityPoolProvider("g
   attributeCondition: `assertion.repository_owner_id == "${githubOrganization.id}"`,
 });
 
-/** Lets this repository's pull request workflows act as the organization reader. */
+/** Lets this repository's pull request workflows act as the foundation reader. */
 new gcp.serviceaccount.IAMMember("organization-reader-user-github-pull-request", {
-  serviceAccountId: organizationReader.name,
+  serviceAccountId: foundationReader.name,
   role: "roles/iam.workloadIdentityUser",
   member: pulumi.interpolate`principal://iam.googleapis.com/${githubPool.name}/subject/${githubRepositorySubject}:pull_request`,
 });
 
-/** Lets this repository's workflows on the main branch act as the organization provisioner. */
+/** Lets this repository's workflows on the main branch act as the foundation provisioner. */
 new gcp.serviceaccount.IAMMember("organization-provisioner-user-github-main", {
-  serviceAccountId: organizationProvisioner.name,
+  serviceAccountId: foundationProvisioner.name,
   role: "roles/iam.workloadIdentityUser",
   member: pulumi.interpolate`principal://iam.googleapis.com/${githubPool.name}/subject/${githubRepositorySubject}:ref:refs/heads/main`,
 });
