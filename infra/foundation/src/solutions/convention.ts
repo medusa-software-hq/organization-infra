@@ -3,6 +3,7 @@ import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
 import { billingAccountId } from '../organization.ts';
+import { ownQuotaServices } from '../projects.ts';
 import { solutionsFolder } from '../solutions.ts';
 
 /** A product the organization develops, with its own folder and projects. */
@@ -77,13 +78,13 @@ export function solutionBaselineServices(
   namePrefix: string,
   { project, provider }: SolutionProject,
 ): gcp.projects.Service[] {
+  const ownQuota = ownQuotaServices(namePrefix, project);
+  const opts = { provider, dependsOn: ownQuota };
+
   return [
-    projectService(namePrefix, project.projectId, 'cloudresourcemanager.googleapis.com', {
-      provider,
-    }),
-    projectService(namePrefix, project.projectId, 'serviceusage.googleapis.com', { provider }),
-    projectService(namePrefix, project.projectId, 'iam.googleapis.com', { provider }),
-    projectService(namePrefix, project.projectId, 'iamcredentials.googleapis.com', { provider }),
-    projectService(namePrefix, project.projectId, 'storage.googleapis.com', { provider }),
+    ...ownQuota,
+    projectService(namePrefix, project.projectId, 'iam.googleapis.com', opts),
+    projectService(namePrefix, project.projectId, 'iamcredentials.googleapis.com', opts),
+    projectService(namePrefix, project.projectId, 'storage.googleapis.com', opts),
   ];
 }
