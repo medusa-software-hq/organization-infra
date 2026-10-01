@@ -55,6 +55,16 @@ export const resourceManagerApi = new gcp.projects.Service('resource-manager-api
   disableOnDestroy: false,
 });
 
+/**
+ * The Service Usage API in the root project, which turning on a new project's first two APIs is
+ * billed to, since the new project can't be billed for them yet. Nothing else should need it.
+ */
+export const serviceUsageApi = new gcp.projects.Service('service-usage-api', {
+  project: rootProject.projectId,
+  service: 'serviceusage.googleapis.com',
+  disableOnDestroy: false,
+});
+
 /** The Privileged Access Manager API in the root project, for automation requesting grants. */
 export const privilegedAccessManagerApi = new gcp.projects.Service(
   'privileged-access-manager-api',
