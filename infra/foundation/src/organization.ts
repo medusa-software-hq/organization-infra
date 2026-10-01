@@ -12,5 +12,8 @@ export const billingAccountId = '015A16-6671FE-EC0231';
 /** The default location for regional resources. */
 export const primaryLocation = 'europe-central2';
 
+/** The group of the organization's administrators. */
+export const organizationAdminsGroup = 'group:gcp-organization-admins@medusa.software';
+
 /** The root project's GitHub pool, through which workflows act as service accounts. */
 export const rootGithubPool = referenceRootGithubPool();

@@ -1,4 +1,5 @@
 import type { GithubRepository } from '@medusa/infra-common/rootGithubPool';
+import { projectService } from '@medusa/infra-common/utils/projectService';
 import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket';
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
@@ -22,13 +23,21 @@ export const codefarmInfraRepository: GithubRepository = {
 export const codefarmFolder = solutionFolder(codefarm);
 
 /** The base stack's project, for what the environments share, like build artifacts; `x` for "cross-environment". */
-const codefarmBase = solutionProject(codefarm, codefarmFolder, 'x', 'base');
+export const codefarmBase = solutionProject(codefarm, codefarmFolder, 'x', 'base');
 
 export const codefarmBaseProject = codefarmBase.project;
 
 const { provider } = codefarmBase;
 
 const baseServices = solutionBaselineServices('codefarm-x', codefarmBase);
+
+/** For the tokens the foundation leaves to admins, like the environments' Cloudflare minter tokens. */
+export const codefarmBaseSecretManagerApi = projectService(
+  'codefarm-x',
+  codefarmBaseProject.projectId,
+  'secretmanager.googleapis.com',
+  { provider },
+);
 
 /** Applies the base stack. */
 export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
