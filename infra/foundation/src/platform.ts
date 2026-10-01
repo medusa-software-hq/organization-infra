@@ -3,6 +3,7 @@ import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
 import { billingAccountId, organization, organizationAdminsGroup } from './organization.ts';
+import { ownQuotaServices } from './projects.ts';
 
 /** The random suffix of the platform project ID. */
 const platformProjectSuffix = new random.RandomId('platform-project-suffix', { byteLength: 4 });
@@ -30,8 +31,13 @@ const provider = new gcp.Provider('platform', {
   userProjectOverride: true,
 });
 
+const ownQuota = ownQuotaServices('platform', platformProject);
+
 // Cloudflare's Google Workspace sign-in reads the signed-in people through the Admin SDK
-projectService('platform', platformProject.projectId, 'admin.googleapis.com', { provider });
+projectService('platform', platformProject.projectId, 'admin.googleapis.com', {
+  provider,
+  dependsOn: ownQuota,
+});
 
 // The OAuth consent screen and client have no API, so admins create them in the console
 new gcp.projects.IAMMember(
@@ -41,5 +47,5 @@ new gcp.projects.IAMMember(
     role: 'roles/oauthconfig.editor',
     member: organizationAdminsGroup,
   },
-  { provider },
+  { provider, dependsOn: ownQuota },
 );
