@@ -1,5 +1,6 @@
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
+import { organizationAdminsGroup, primaryLocation } from '../../organization.ts';
 import {
   type Environment,
   production,
@@ -7,7 +8,14 @@ import {
   solutionProject,
   staging,
 } from '../convention.ts';
-import { codefarm, codefarmBaseProvisioner, codefarmFolder, codefarmReader } from './base.ts';
+import {
+  codefarm,
+  codefarmBase,
+  codefarmBaseProvisioner,
+  codefarmBaseSecretManagerApi,
+  codefarmFolder,
+  codefarmReader,
+} from './base.ts';
 
 /** Declares an environment's project, whose contents Codefarm's base stack manages. */
 function codefarmEnvironment(environment: Environment): gcp.organizations.Project {
@@ -52,6 +60,30 @@ function codefarmEnvironment(environment: Environment): gcp.organizations.Projec
       member: pulumi.interpolate`serviceAccount:${codefarmReader.email}`,
     },
     { provider },
+  );
+
+  /**
+   * Holds the token Codefarm mints the environment's Cloudflare tokens with; only admins add it.
+   * Kept in the base project, out of the reach of the environment project's owners.
+   */
+  const minterToken = new gcp.secretmanager.Secret(
+    `codefarm-${environment.name}-cloudflare-minter-token`,
+    {
+      project: codefarmBase.project.projectId,
+      secretId: `cloudflare-${environment.name}-minter-token`,
+      replication: { userManaged: { replicas: [{ location: primaryLocation }] } },
+    },
+    { provider: codefarmBase.provider, dependsOn: [codefarmBaseSecretManagerApi] },
+  );
+
+  new gcp.secretmanager.SecretIamMember(
+    `codefarm-${environment.name}-cloudflare-minter-token-admins`,
+    {
+      secretId: minterToken.id,
+      role: 'roles/secretmanager.secretVersionAdder',
+      member: organizationAdminsGroup,
+    },
+    { provider: codefarmBase.provider },
   );
 
   return project;
