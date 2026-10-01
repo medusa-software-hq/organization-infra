@@ -4,7 +4,7 @@ import { pulumiStateBucket } from '@medusa/infra-common/utils/pulumiStateBucket'
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
-import { primaryLocation, rootGithubPool } from '../../organization.ts';
+import { organizationAdminsGroup, primaryLocation, rootGithubPool } from '../../organization.ts';
 import {
   type Solution,
   solutionBaselineServices,
@@ -36,6 +36,30 @@ export const codefarmBaseSecretManagerApi = projectService(
   'codefarm-x',
   codefarmBaseProject.projectId,
   'secretmanager.googleapis.com',
+  { provider },
+);
+
+/**
+ * Holds the secret of the OAuth client in the platform project, which Codefarm's Cloudflare
+ * accounts sign people in with; only admins add it.
+ */
+const googleSignInClientSecret = new gcp.secretmanager.Secret(
+  'codefarm-google-sign-in-client-secret',
+  {
+    project: codefarmBaseProject.projectId,
+    secretId: 'google-sign-in-client-secret',
+    replication: { userManaged: { replicas: [{ location: primaryLocation }] } },
+  },
+  { provider, dependsOn: [codefarmBaseSecretManagerApi] },
+);
+
+new gcp.secretmanager.SecretIamMember(
+  'codefarm-google-sign-in-client-secret-admins',
+  {
+    secretId: googleSignInClientSecret.id,
+    role: 'roles/secretmanager.secretVersionAdder',
+    member: organizationAdminsGroup,
+  },
   { provider },
 );
 
