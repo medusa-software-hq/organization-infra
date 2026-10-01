@@ -1,4 +1,5 @@
 import { organization } from './organization.ts';
+import { platformProject } from './platform.ts';
 import {
   codefarmBaseProject,
   codefarmBaseProvisioner,
@@ -11,6 +12,8 @@ import {
 } from './solutions/codefarm/environments.ts';
 
 export const organizationId = organization.orgId;
+
+export const platformProjectId = platformProject.projectId;
 
 export const codefarm = {
   projectIds: {
