@@ -63,6 +63,30 @@ new gcp.secretmanager.SecretIamMember(
   { provider },
 );
 
+/**
+ * Holds the private key of the GitHub App with which `codefarm` opens write-back pull requests in
+ * `codefarm-infra`; only admins add it.
+ */
+const githubWriteBackKey = new gcp.secretmanager.Secret(
+  'codefarm-github-write-back-key',
+  {
+    project: codefarmBaseProject.projectId,
+    secretId: 'github-write-back-key',
+    replication: { userManaged: { replicas: [{ location: primaryLocation }] } },
+  },
+  { provider, dependsOn: [codefarmBaseSecretManagerApi] },
+);
+
+new gcp.secretmanager.SecretIamMember(
+  'codefarm-github-write-back-key-admins',
+  {
+    secretId: githubWriteBackKey.id,
+    role: 'roles/secretmanager.secretVersionAdder',
+    member: organizationAdminsGroup,
+  },
+  { provider },
+);
+
 /** Applies the base stack. */
 export const codefarmBaseProvisioner = new gcp.serviceaccount.Account(
   'codefarm-base-provisioner',
