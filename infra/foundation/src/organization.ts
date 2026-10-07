@@ -1,5 +1,6 @@
 import { referenceRootGithubPool } from '@medusa/infra-common/rootGithubPool';
 import * as gcp from '@pulumi/gcp';
+import * as pulumi from '@pulumi/pulumi';
 
 /** The GCP organization. */
 export const organization = gcp.organizations.getOrganizationOutput({
@@ -17,3 +18,12 @@ export const organizationAdminsGroup = 'group:gcp-organization-admins@medusa.sof
 
 /** The root project's GitHub pool, through which workflows act as service accounts. */
 export const rootGithubPool = referenceRootGithubPool();
+
+/** Marks a project where service account keys may be created, as bootstrap allows. */
+export const serviceAccountKeysAllowed = gcp.tags.getTagValueOutput({
+  parent: gcp.tags.getTagKeyOutput({
+    parent: pulumi.interpolate`organizations/${organization.orgId}`,
+    shortName: 'service-account-keys',
+  }).id,
+  shortName: 'allowed',
+});
