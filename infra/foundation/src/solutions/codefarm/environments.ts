@@ -1,6 +1,10 @@
 import * as gcp from '@pulumi/gcp';
 import * as pulumi from '@pulumi/pulumi';
-import { organizationAdminsGroup, primaryLocation } from '../../organization.ts';
+import {
+  organizationAdminsGroup,
+  primaryLocation,
+  serviceAccountKeysAllowed,
+} from '../../organization.ts';
 import {
   type Environment,
   production,
@@ -84,6 +88,16 @@ function codefarmEnvironment(environment: Environment): gcp.organizations.Projec
       member: organizationAdminsGroup,
     },
     { provider: codefarmBase.provider },
+  );
+
+  // Codefarm's edge calls the environment's service with a service account key
+  new gcp.tags.TagBinding(
+    `codefarm-${environment.name}-service-account-keys-allowed`,
+    {
+      parent: pulumi.interpolate`//cloudresourcemanager.googleapis.com/projects/${project.number}`,
+      tagValue: serviceAccountKeysAllowed.id,
+    },
+    { provider },
   );
 
   return project;
